@@ -16,7 +16,7 @@ export const runtime = "edge";
 export const metadata: Metadata = buildMetadata({
   title: "服务目录",
   description:
-    "智库服务：知识库（免费 / ¥9.9 引流，构建行业认知）→ 工具库（¥99 – ¥299，现成工具直接落地）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
+    "智库服务：知识库（免费 / ¥9.9 体验价，构建行业认知）→ 工具库（¥99 – ¥299，现成工具直接落地）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
   path: "/products",
   keywords: [KEYWORDS.data, KEYWORDS.oe, KEYWORDS.vin, KEYWORDS.knowledge, KEYWORDS.sop],
 });
@@ -46,7 +46,7 @@ export default async function ProductsPage({
       <PageHero
         tag="CATALOG"
         title="服务目录：知识库、工具库、数据库"
-        desc="三层资产，缺什么补什么：先用知识库把行业看明白，再用工具库把动作做出结果，最后用数据库看透自己的真实利润。"
+        desc="先用知识库把行业看明白，再用工具库把动作做出结果，最后用数据库看透自己的真实利润。"
       />
 
       {/* 身份筛选提示条：从首页四类入口进来时展示 */}

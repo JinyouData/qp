@@ -15,7 +15,7 @@ import { getProducts } from "@/lib/data";
 
 export const metadata: Metadata = buildMetadata({
   title: "报告与数据产品",
-  description: "行业报告（品类数据、价格带、竞争格局、趋势预判，¥9.9 引流）与数据库会员（金游智库·专属查询账号，Client 只读，312 万 SKU 无限次查询，¥999 / 年）。",
+  description: "行业报告（品类数据、价格带、竞争格局、趋势预判，¥9.9 体验价）与数据库会员（金游智库·专属查询账号，Client 只读，312 万 SKU 无限次查询，¥999 / 年）。",
   path: "/reports",
   keywords: [KEYWORDS.data, KEYWORDS.nev, KEYWORDS.compliance, KEYWORDS.oe],
 });

@@ -49,7 +49,7 @@ export async function generateMetadata({
     description: `${product.positioning}。适合${product.audience}；解决：${product.problem}；交付：${product.deliverable}；${product.price}。`,
     path: `/products/${product.slug}`,
     ogImage: `/og/products-${product.slug}.png`,
-    keywords: [product.name, LIBRARIES[product.library].name, "三库", "汽配数据"],
+    keywords: [product.name, LIBRARIES[product.library].name, "智库服务", "汽配数据"],
   });
 }
 

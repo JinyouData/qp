@@ -8,7 +8,7 @@ import { fetchTable } from "./supabase";
    ============================================================ */
 
 export const FALLBACK_PRODUCTS: Product[] = [
-  /* ================= 板块一 · 知识库（免费 / ¥9.9 引流 · 构建行业认知） ================= */
+  /* ================= 板块一 · 知识库（免费 / ¥9.9 体验价 · 构建行业认知） ================= */
   {
     id: 4, slug: "knowledge-base", name: "避坑指南", icon: "book-open", library: "kb", category: "knowledge",
     positioning: "12,000+ 条踩过的坑，按场景一条条写清楚",
@@ -24,7 +24,7 @@ export const FALLBACK_PRODUCTS: Product[] = [
     problem: "决策缺数据支撑，拍脑袋交学费",
     audience: "需要决策依据的经营者与平台团队",
     deliverable: "完整报告文档 · 数据来源与口径全部注明",
-    price: "¥9.9 · 引流价",
+    price: "¥9.9 · 体验价",
     cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
   {
@@ -51,7 +51,7 @@ export const FALLBACK_PRODUCTS: Product[] = [
     problem: "想提效但不知道好用的表格长什么样",
     audience: "有现成业务、想立刻提效的团队",
     deliverable: "选品评分表 / 供应商评估表 / 库存周转表 / 客服话术库",
-    price: "¥9.9 · 引流价",
+    price: "¥9.9 · 体验价",
     cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
   {
