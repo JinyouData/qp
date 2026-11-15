@@ -68,7 +68,7 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
     need: "想自己查数",
     pain: "干货看了一堆，轮到自己干还是没体系、没方法。",
     give: "基础知识库 + 金游数据智库账号 + 常用查询视图",
-    recommended: ["knowledge-base", "data-subscription", "toolkit-selection", "toolkit-pricing"],
+    recommended: ["knowledge-base", "data-subscription", "toolkit-selection", "toolkit-fitment"],
     demand: "数据订阅",
     intent: "asset",
   },

@@ -69,6 +69,7 @@ export function WecomDialog({
   onOpenChange,
   from = "site",
   subject,
+  notice,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -76,6 +77,8 @@ export function WecomDialog({
   from?: string;
   /** 触发主体（产品名 / 页面名），仅用于埋点与副标题 */
   subject?: string;
+  /** 自定义提示语（如「免费次数已用完」），显示在二维码上方；不传则保持原名片形态 */
+  notice?: string;
 }) {
   // 弹窗打开即视为一次「联系主理人」意向
   useEffect(() => {
@@ -104,6 +107,11 @@ export function WecomDialog({
 
         {/* 内容区：小屏（如 375×667）高度不够时区内滚动，头图与关闭按钮保持可见 */}
         <div className="min-h-0 overflow-y-auto px-6 pb-6 pt-5">
+          {notice && (
+            <p className="mb-4 rounded-xl border border-brand-orange/30 bg-brand-orange-soft px-4 py-3 text-sm font-semibold leading-relaxed text-brand-orange-ink">
+              {notice}
+            </p>
+          )}
           {/* 名片：头像与二维码并排（专家名片质感，不用大红大橙） */}
           <div className="flex items-center justify-center gap-5 rounded-2xl border bg-muted/40 p-4">
             <div className="flex shrink-0 flex-col items-center gap-1.5">

@@ -16,9 +16,17 @@ export const runtime = "edge";
 export const metadata: Metadata = buildMetadata({
   title: "服务目录",
   description:
-    "智库服务：知识库（6 项全部免费，加微即得，构建行业认知）→ 工具库（¥99 – ¥299，现成工具直接落地）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
+    "智库服务：知识库（6 项全部免费，加微即得）→ 工具库（AI核价助手免费体验，支持 Ozon利润计算与亚马逊毛利测算；另有 ¥99 – ¥299 现成工具）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
   path: "/products",
-  keywords: [KEYWORDS.data, KEYWORDS.oe, KEYWORDS.vin, KEYWORDS.knowledge, KEYWORDS.sop],
+  keywords: [
+    KEYWORDS.data,
+    KEYWORDS.oe,
+    KEYWORDS.vin,
+    KEYWORDS.knowledge,
+    KEYWORDS.sop,
+    "AI核价",
+    "Ozon利润计算",
+  ],
 });
 
 export default async function ProductsPage({

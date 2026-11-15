@@ -74,15 +74,9 @@ export const FALLBACK_PRODUCTS: Product[] = [
     price: "¥199",
     cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
-  {
-    id: 15, slug: "toolkit-pricing", name: "核价毛利计算器", icon: "coins", library: "tools", category: "knowledge",
-    positioning: "算清楚到手多少钱，别再卖一单亏一单",
-    problem: "定价时漏算汇率、佣金、物流与退货，账面赚钱实际亏",
-    audience: "做出海与多平台经营的卖家",
-    deliverable: "成本核算表 + 汇率折算器 + 毛利校验表 + 定价决策卡",
-    price: "¥299",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
-  },
+  /* 2026-11-15：《核价毛利计算器》已下线。工具库首位改挂
+     /tools/ai-profit 的 AI 核价助手展示卡（见 library-sections.tsx），
+     它是可在线体验的应用，不再是产品详情模板里的一张 Excel。 */
   {
     id: 16, slug: "toolkit-fitment", name: "适配校验表", icon: "scan-search", library: "tools", category: "knowledge",
     positioning: "按三层校验法，把适配数据一条条过一遍",
@@ -253,6 +247,9 @@ const RETIRED_PRODUCT_SLUGS = new Set([
   // 2026-11-15 服务目录瘦身：「内容 IP」不直接产生交易，卡片已整体下线。
   // 即使数据库里还留着旧记录，也不允许它回到官网。
   "content-ip",
+  // 同日：《核价毛利计算器》由 /tools/ai-profit 的 AI 核价助手取代，
+  // 防止 Supabase 里的旧行把这张 Excel 卡片带回来。
+  "toolkit-pricing",
 ]);
 
 /**

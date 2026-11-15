@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, ChevronDown, Database, ScanSearch, Store } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Database, ScanSearch, Sparkles, Store } from "lucide-react";
 
 import { LIBRARIES, LIBRARY_ORDER, type Library, type Product } from "@/lib/types";
 import { ProductIcon } from "./icon";
@@ -66,6 +66,41 @@ function LibCard({ product, accent }: { product: Product; accent: string }) {
         <ProductCta product={product} />
       </div>
     </article>
+  );
+}
+
+/**
+ * 工具库首位：AI 核价助手（在线体验入口）。
+ * 2026-11-15 取代原来的《核价毛利计算器》Excel 卡片。
+ * col-span-full 让它在 PC 端独占一整行、视觉权重最高，
+ * 下面 3 张工具卡正好排成一行 3 列；手机端自动变单列。
+ */
+function AiToolCard() {
+  return (
+    <Link
+      href="/tools/ai-profit"
+      className="group col-span-full flex flex-col gap-4 rounded-2xl border-2 border-brand-green/30 bg-brand-green-soft p-5 transition-colors hover:border-brand-green/60 hover:bg-brand-green-soft/70 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+    >
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-green text-white">
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-bold">AI 跨境利润测算助手</h3>
+            <span className="rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold text-white">
+              活工具 · 免费体验 3 次
+            </span>
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            别再靠死 Excel 拍脑袋定价：说清采购价、运费、平台与售价，自动扣减头程、尾程、平台佣金 15%、退货损耗 5%，给出 Ozon 利润计算、亚马逊毛利测算与风险提醒。
+          </p>
+        </div>
+      </div>
+      <span className="inline-flex shrink-0 items-center gap-1 self-start rounded-full bg-brand-green px-4 py-2 text-xs font-bold text-white sm:self-auto">
+        立即免费测算 <ArrowRight className="h-3.5 w-3.5" />
+      </span>
+    </Link>
   );
 }
 
@@ -173,10 +208,23 @@ function CollapsibleLibrary({
         {/* 收起时这行也保留，不展开也能看懂这个板块卖什么 */}
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">{lib.note}</p>
 
+        {/* 工具库的活样本：折叠态也可见，点进 AI 核价助手免费体验 */}
+        {libKey === "tools" && (
+          <Link
+            href="/tools/ai-profit"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-brand-green/30 bg-brand-green-soft px-3 py-1.5 text-xs font-semibold text-brand-green transition-colors hover:border-brand-green/60"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            免费体验 AI 核价助手
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
+
         <div id={bodyId} role="region" aria-labelledby={titleId} className="acc-body">
           <div className="acc-inner">
             {/* 知识库 6 项：PC 端 md 起固定 3 列 = 完美 2 行 × 3 列，不留空位；
-                手机端单列纵向。工具库 4 项保持原来的响应式列数。 */}
+                手机端单列纵向。工具库首位是跨整行的 AI 核价助手，
+                下面 3 张工具卡在 PC 端正好排成一行 3 列。 */}
             <div
               className={`mt-5 grid gap-3 ${
                 libKey === "kb"
@@ -184,6 +232,7 @@ function CollapsibleLibrary({
                   : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
               }`}
             >
+              {libKey === "tools" && <AiToolCard />}
               {items.map((p) => (
                 <LibCard key={p.id} product={p} accent={theme.accent} />
               ))}

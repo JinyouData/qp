@@ -10,6 +10,7 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/products", label: "服务目录" },
       { href: "/products#lib-kb", label: "知识库" },
       { href: "/products#lib-tools", label: "工具库" },
+      { href: "/tools/ai-profit", label: "AI 核价助手" },
       { href: "/products#lib-data", label: "数据库" },
       { href: "/consulting", label: "定制咨询" },
       { href: "/partners", label: "SaaS与AI合作" },
