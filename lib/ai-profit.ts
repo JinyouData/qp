@@ -14,12 +14,9 @@
 
 import { NO_PLATFORM_NAMES_RULE } from "./desensitize";
 
-/** 游客免费体验次数（服务端与前端共用同一个常量） */
-export const TRIAL_LIMIT = 3;
-
-/** 3 次用完后的弹窗提示语（产品口径，前后端共用，勿随意改字） */
-export const TRIAL_LIMIT_MESSAGE =
-  "您的免费体验次数已用完，请扫码添加主理人企微，开通正式会员解锁无限次 AI 测算与 312万 OE 码查询。";
+// 额度与弹窗文案的唯一真源在 lib/ai-tools.ts（四个工具共用），
+// 这里保留 re-export，避免改动既有 import 路径。
+export { TRIAL_LIMIT, TRIAL_LIMIT_MESSAGE } from "./ai-tools";
 
 /** 默认估算口径：用户没给头程/尾程时才用 */
 export const DEFAULT_RATES = {

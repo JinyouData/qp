@@ -26,10 +26,10 @@ export const LIBRARIES: Record<
   tools: {
     name: "工具库",
     en: "TOOLKIT",
-    tagline: "现成工具，直接落地",
-    price: "¥99 – ¥299",
+    tagline: "在线 AI 助手，边问边出结论",
+    price: "每天免费 3 次",
     goal: "把一个动作做出结果",
-    note: "AI 核价助手免费体验，另有选品评分表、适配校验表、库存周转模板 —— 拿过去填自己的数，当天能用。",
+    note: "四个在线 AI 助手：利润测算、选品与竞品诊断、OE 码匹配避坑、库存清仓顾问 —— 不下载表格，直接对话出结论，每天免费 3 次。",
   },
   data: {
     name: "数据库",

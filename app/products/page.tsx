@@ -16,7 +16,7 @@ export const runtime = "edge";
 export const metadata: Metadata = buildMetadata({
   title: "服务目录",
   description:
-    "智库服务：知识库（6 项全部免费，加微即得）→ 工具库（AI核价助手免费体验，全渠道统一口径，支持多平台毛利测算；另有 ¥99 – ¥299 现成工具）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
+    "智库服务：知识库（6 项全部免费，加微即得）→ 工具库（4 个在线 AI 助手：利润测算、选品与竞品诊断、OE 码匹配避坑、库存清仓顾问，每天免费对话 3 次）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
   path: "/products",
   keywords: [
     KEYWORDS.data,

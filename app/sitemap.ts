@@ -84,8 +84,8 @@ function allIndexableRoutes(): string[] {
 /** 首页 1.0；产品中心与全部产品详情页 0.8；其余页面 0.5 */
 function priorityOf(route: string): number {
   if (route === "/") return 1.0;
-  // AI 核价助手是重点落地页，与产品详情页同级权重
-  if (route === "/products" || route.startsWith("/products/") || route === "/tools/ai-profit") return 0.8;
+  // 工具库四个 AI 助手是重点落地页，与产品详情页同级权重
+  if (route === "/products" || route.startsWith("/products/") || route.startsWith("/tools/")) return 0.8;
   return 0.5;
 }
 

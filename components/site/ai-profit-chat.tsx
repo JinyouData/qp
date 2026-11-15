@@ -7,24 +7,28 @@ import { Button } from "@/components/ui/button";
 import {
   QUICK_ASKS,
   TRIAL_LIMIT,
-  TRIAL_LIMIT_MESSAGE,
   yuan,
   type CalcResult,
 } from "@/lib/ai-profit";
+import { AI_TOOLS, todayKey, type ToolType } from "@/lib/ai-tools";
 import { WecomDialog } from "./wecom-dialog";
 
 /* ============================================================
-   AI 跨境利润测算助手 · 极简对话框
+   工具库 AI 助手 · 通用极简对话框（四个工具共用）
+
+   2026-11-15：三张死表格换成在线 AI 助手后，对话框按 tool_type
+   参数化，复用同一份 UI、同一条 /api/ai-chat 接口与同一份额度账本。
 
    试用门槛：
-   1. 浏览器 localStorage 即时拦截，只负责 UX（刷新不重置次数）
-   2. 服务端 /api/ai-chat 用 Supabase 持久化账本裁决，Edge 多实例共享同一份额度；
-      清缓存换 visitorId 仍按出口 IP 的累计次数拦截
+   1. 浏览器 localStorage 即时拦截，按「北京时间当天」存次数
+   2. 服务端 Supabase 持久化账本裁决，Edge 多实例共享、每天重置 3 次；
+      清缓存换 visitorId 仍按出口 IP 的当天累计次数拦截
    前端上报的 used 只用于展示与离线兜底，篡改它无法给自己加次数；
-   服务端返回 429 时这里会回滚悬空提问、同步计数并弹企微二维码。
+   服务端返回 429 时回滚悬空提问、同步计数并弹企微二维码。
    ============================================================ */
 
-const USED_KEY = "jinyou_ai_trial_used";
+/** v2：按天存 { day, used }；旧版纯数字 key 不再读取，避免旧累计次数卡住新额度 */
+const USED_KEY = "jinyou_ai_trial_used_v2";
 const VID_KEY = "jinyou_ai_vid";
 
 type Mode = "live" | "mock" | "fallback" | undefined;
@@ -38,6 +42,27 @@ function newVid(): string {
     // 老浏览器降级
   }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function readUsed(): number {
+  try {
+    const raw = localStorage.getItem(USED_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as { day?: string; used?: number };
+    if (parsed?.day !== todayKey()) return 0; // 跨天自动重置
+    const n = Number(parsed.used ?? 0);
+    return Number.isFinite(n) ? Math.min(Math.max(n, 0), TRIAL_LIMIT) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeUsed(n: number) {
+  try {
+    localStorage.setItem(USED_KEY, JSON.stringify({ day: todayKey(), used: n }));
+  } catch {
+    // 隐私模式下 localStorage 不可用：服务端账本仍权威，不影响限流
+  }
 }
 
 function CalcTable({ calc }: { calc: CalcResult }) {
@@ -78,7 +103,14 @@ function CalcTable({ calc }: { calc: CalcResult }) {
   );
 }
 
-export function AiProfitChat() {
+/**
+ * 通用对话框。tool 决定标题、快捷提问、占位文案、限流弹窗文案与是否展示测算表。
+ * AiProfitChat 是核价助手的薄封装，保持既有页面的 import 不变。
+ */
+export function AiAssistantChat({ tool = "profit" }: { tool?: ToolType }) {
+  const cfg = AI_TOOLS[tool];
+  const quickAsks = tool === "profit" ? QUICK_ASKS : cfg.quickAsks;
+
   const [ready, setReady] = useState(false);
   const [vid, setVid] = useState("");
   const [used, setUsed] = useState(0);
@@ -86,6 +118,7 @@ export function AiProfitChat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [limitOpen, setLimitOpen] = useState(false);
+  const [limitNotice, setLimitNotice] = useState(cfg.limitMessage);
   const [error, setError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -96,9 +129,8 @@ export function AiProfitChat() {
       v = newVid();
       localStorage.setItem(VID_KEY, v);
     }
-    const raw = Number(localStorage.getItem(USED_KEY) ?? 0);
     setVid(v);
-    setUsed(Number.isFinite(raw) ? Math.min(Math.max(raw, 0), TRIAL_LIMIT) : 0);
+    setUsed(readUsed());
     setReady(true);
   }, []);
 
@@ -112,6 +144,7 @@ export function AiProfitChat() {
     setError("");
 
     if (used >= TRIAL_LIMIT) {
+      setLimitNotice(cfg.limitMessage);
       setLimitOpen(true);
       return;
     }
@@ -123,7 +156,7 @@ export function AiProfitChat() {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: q, visitorId: vid, used }),
+        body: JSON.stringify({ message: q, visitorId: vid, used, tool_type: tool }),
       });
       const data = await res.json();
 
@@ -131,7 +164,8 @@ export function AiProfitChat() {
         // 服务端说次数已用完：回滚这条悬空提问，同步计数并弹二维码
         setMessages((prev) => prev.slice(0, -1));
         setUsed(TRIAL_LIMIT);
-        localStorage.setItem(USED_KEY, String(TRIAL_LIMIT));
+        writeUsed(TRIAL_LIMIT);
+        setLimitNotice(typeof data.message === "string" ? data.message : cfg.limitMessage);
         setLimitOpen(true);
         return;
       }
@@ -141,14 +175,17 @@ export function AiProfitChat() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: data.reply, mode: data.mode, calc: data.calc },
+        { role: "assistant", text: data.reply, mode: data.mode, calc: cfg.showCalc ? data.calc : undefined },
       ]);
       const next =
         typeof data.remaining === "number" ? TRIAL_LIMIT - data.remaining : used + 1;
       setUsed(next);
-      localStorage.setItem(USED_KEY, String(next));
+      writeUsed(next);
       // 第 3 次回答照常展示，随后立刻弹出开通提示
-      if (next >= TRIAL_LIMIT) setLimitOpen(true);
+      if (next >= TRIAL_LIMIT) {
+        setLimitNotice(cfg.limitMessage);
+        setLimitOpen(true);
+      }
     } catch (e) {
       setError(`${e instanceof Error ? e.message : "网络异常"}（本次不计次数）`);
     } finally {
@@ -180,18 +217,18 @@ export function AiProfitChat() {
           <Sparkles className="h-4.5 w-4.5" />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-bold">AI 跨境利润测算助手</p>
-          <p className="text-xs text-muted-foreground">头程 · 尾程 · 佣金 15% · 退货损耗 5%，一次算清</p>
+          <p className="text-sm font-bold">{cfg.name}</p>
+          <p className="text-xs text-muted-foreground">{cfg.subtitle}</p>
         </div>
         <div className="ml-auto flex flex-col items-end gap-1">
           <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-primary">
-            {remaining > 0 ? `免费体验 · 还剩 ${remaining} 次` : "免费体验已用完"}
+            {remaining > 0 ? `每天免费 · 还剩 ${remaining} 次` : "今日免费次数已用完"}
           </span>
           {lastMode && (
             <span className="text-[10px] text-muted-foreground">
               {lastMode === "live"
                 ? "已接入大模型 · 真实回复"
-                : "本地演示模式 · 数字按内置口径计算"}
+                : "本地演示模式 · 结论按内置规则计算"}
             </span>
           )}
         </div>
@@ -206,10 +243,8 @@ export function AiProfitChat() {
         {messages.length === 0 && (
           <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
             <Bot className="h-8 w-8 text-brand-green/60" strokeWidth={1.5} />
-            <p className="text-sm font-semibold">用大白话说清你的货和平台</p>
-            <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
-              例如「欧洲平台卖车灯，采购价 85 元，预估售价 320 元」。缺的数字我会按默认口径估，并标注出来。
-            </p>
+            <p className="text-sm font-semibold">{cfg.emptyTitle}</p>
+            <p className="max-w-md text-xs leading-relaxed text-muted-foreground">{cfg.emptyHint}</p>
           </div>
         )}
 
@@ -231,10 +266,10 @@ export function AiProfitChat() {
               }`}
             >
               <p className="whitespace-pre-wrap">{m.text}</p>
-              {m.role === "assistant" && m.calc && <CalcTable calc={m.calc} />}
+              {m.role === "assistant" && cfg.showCalc && m.calc && <CalcTable calc={m.calc} />}
               {m.role === "assistant" && m.mode && m.mode !== "live" && (
                 <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-                  本地演示模式：未配置大模型 API Key 或上游暂不可用；上方数字按内置口径计算，不受影响。
+                  本地演示模式：未配置大模型 API Key 或上游暂不可用；上方结论按内置规则计算，不受影响。
                 </p>
               )}
             </div>
@@ -248,14 +283,14 @@ export function AiProfitChat() {
 
         {loading && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> 正在按固定口径测算…
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {cfg.loadingText}
           </div>
         )}
       </div>
 
       {/* 快捷提问 */}
       <div className="flex flex-wrap gap-2 border-t pt-4">
-        {QUICK_ASKS.map((q) => (
+        {quickAsks.map((q) => (
           <button
             key={q.label}
             type="button"
@@ -281,7 +316,7 @@ export function AiProfitChat() {
           }}
           rows={2}
           maxLength={1000}
-          placeholder="例如：北美平台卖刹车片，采购 60 元，售价 260 元，头程 20 元，能赚多少？"
+          placeholder={cfg.placeholder}
           className="min-h-[64px] flex-1 resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-brand-green/50"
         />
         <Button variant="orange" onClick={() => void ask(input)} disabled={loading || !input.trim()} className="h-11 shrink-0">
@@ -292,7 +327,7 @@ export function AiProfitChat() {
       {error && <p className="mt-2 text-xs text-brand-red">{error}</p>}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-        <span>结果为估算，不替代正式报价；官网不处理支付，资料与开通均由主理人在企业微信交付。</span>
+        <span>{cfg.footerNote}</span>
         {process.env.NODE_ENV === "development" && (
           <button
             type="button"
@@ -307,10 +342,15 @@ export function AiProfitChat() {
       <WecomDialog
         open={limitOpen}
         onOpenChange={setLimitOpen}
-        from="ai-chat-trial-limit"
-        subject="AI 跨境利润测算助手"
-        notice={TRIAL_LIMIT_MESSAGE}
+        from={`ai-chat-trial-limit:${tool}`}
+        subject={cfg.name}
+        notice={limitNotice}
       />
     </div>
   );
+}
+
+/** 核价助手页面用的薄封装（保持既有 import 不变） */
+export function AiProfitChat() {
+  return <AiAssistantChat tool="profit" />;
 }

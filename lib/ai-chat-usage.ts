@@ -1,5 +1,5 @@
 /* ============================================================
-   AI 核价助手 · 试用额度（服务端权威 / 持久化 / 防绕过）
+   工具库四个 AI 助手 · 试用额度（服务端权威 / 持久化 / 防绕过 / 按天重置）
 
    取代 MVP 版的进程内 Map：Edge 多 isolate 之间内存不共享，
    换节点、重启、扩缩容都会把 3 次额度洗回 0，等于没有门槛。
@@ -10,6 +10,10 @@
    L2  supabase-events  现有 events 表，event='ai_chat_usage' 计数
                         —— 无需执行任何 SQL，部署上线即刻持久化生效
    L3  memory           进程内 Map（仅在数据库完全不可达时兜底）
+
+   额度口径：每个匿名访客每天 3 次，按北京时间（UTC+8）日界重置；
+   四个工具共用一份账本。实现上把业务日期拼进账本 key，
+   因此 0013 迁移的原始累计型 RPC 无需改 SQL 也能按天工作。
 
    两个维度：
    - visitor_id：浏览器 localStorage 里的匿名 ID，主维度
@@ -23,7 +27,7 @@
    ============================================================ */
 
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { TRIAL_LIMIT } from "@/lib/ai-profit";
+import { todayKey, TRIAL_LIMIT } from "@/lib/ai-tools";
 
 export type UsageSource = "supabase-rpc" | "supabase-events" | "memory";
 
@@ -90,11 +94,14 @@ async function consumeViaRpc(
   visitorId: string,
   ipHash: string | null,
   limit: number,
-  ipGuard: boolean
+  ipGuard: boolean,
+  day: string
 ): Promise<UsageVerdict | null> {
+  // 把业务日期拼进主键：无需改 0013 迁移，累计型 RPC 也能天然变成「按天」额度。
+  // 用 @day 后缀而不是前缀，保持 probe- 前缀可被管理端点清理。
   const { data, error } = await db.rpc("ai_chat_consume", {
-    p_visitor_id: visitorId,
-    p_ip_hash: ipHash ?? "",
+    p_visitor_id: `${visitorId}@${day}`,
+    p_ip_hash: ipHash ? `${ipHash}@${day}` : "",
     p_limit: limit,
     p_ip_guard: ipGuard,
   });
@@ -123,14 +130,17 @@ async function consumeViaEvents(
   visitorId: string,
   ipHash: string | null,
   limit: number,
-  ipGuard: boolean
+  ipGuard: boolean,
+  day: string
 ): Promise<UsageVerdict | null> {
-  // 按 visitor 维度计数
+  // 只统计「今天」的记录：北京时间 00:00 后额度自动重置。
+  // 历史行没有 day 字段，天然不计入今天。
   const byVisitor = await db
     .from("events")
     .select("id", { count: "exact", head: true })
     .eq("event", USAGE_EVENT)
-    .eq("props->>visitor_id", visitorId);
+    .eq("props->>visitor_id", visitorId)
+    .eq("props->>day", day);
   if (byVisitor.error) return null;
 
   let effective = byVisitor.count ?? 0;
@@ -141,7 +151,8 @@ async function consumeViaEvents(
       .from("events")
       .select("id", { count: "exact", head: true })
       .eq("event", USAGE_EVENT)
-      .eq("props->>ip_hash", ipHash);
+      .eq("props->>ip_hash", ipHash)
+      .eq("props->>day", day);
     if (byIp.error) return null;
     effective = Math.max(effective, byIp.count ?? 0);
   }
@@ -155,6 +166,7 @@ async function consumeViaEvents(
     props: {
       visitor_id: visitorId,
       ip_hash: ipHash,
+      day,
       allowed,
     },
     path: "/api/ai-chat",
@@ -182,22 +194,25 @@ function consumeViaMemory(
   ipHash: string | null,
   limit: number,
   ipGuard: boolean,
-  clientUsed: number
+  clientUsed: number,
+  day: string
 ): UsageVerdict {
   // 前端上报只在这里参与，且只能把次数报高（报低无效）
   const reported = Number.isFinite(clientUsed)
     ? Math.min(Math.max(clientUsed, 0), limit)
     : 0;
-  const prevVisitor = Math.max(memVisitor.get(visitorId) ?? 0, reported);
-  const prevIp = ipGuard && ipHash ? memIp.get(ipHash) ?? 0 : 0;
+  const vKey = `${visitorId}@${day}`;
+  const ipKey = ipHash ? `${ipHash}@${day}` : "";
+  const prevVisitor = Math.max(memVisitor.get(vKey) ?? 0, reported);
+  const prevIp = ipGuard && ipKey ? memIp.get(ipKey) ?? 0 : 0;
   const effective = Math.max(prevVisitor, prevIp);
 
   const allowed = effective < limit;
   const used = allowed ? effective + 1 : Math.max(effective, limit);
 
-  memVisitor.set(visitorId, used);
-  if (ipGuard && ipHash) {
-    memIp.set(ipHash, Math.max(memIp.get(ipHash) ?? 0, used));
+  memVisitor.set(vKey, used);
+  if (ipGuard && ipKey) {
+    memIp.set(ipKey, Math.max(memIp.get(ipKey) ?? 0, used));
   }
 
   return {
@@ -219,6 +234,7 @@ export async function consumeTrial(opts: {
   limit?: number;
 }): Promise<UsageVerdict> {
   const limit = opts.limit ?? TRIAL_LIMIT;
+  const day = todayKey(); // 北京时间，服务端与前端 localStorage 用同一个日界
   const ipGuard = (process.env.AI_CHAT_IP_GUARD ?? "true").toLowerCase() !== "false";
   const ipHash = await clientIpHash(opts.req);
   const db = isSupabaseConfigured() ? getSupabaseAdmin() : null;
@@ -226,7 +242,7 @@ export async function consumeTrial(opts: {
   if (db) {
     try {
       const rpc = await withTimeout(
-        consumeViaRpc(db, opts.visitorId, ipHash, limit, ipGuard)
+        consumeViaRpc(db, opts.visitorId, ipHash, limit, ipGuard, day)
       );
       if (rpc) return rpc;
     } catch (e) {
@@ -235,7 +251,7 @@ export async function consumeTrial(opts: {
 
     try {
       const events = await withTimeout(
-        consumeViaEvents(db, opts.visitorId, ipHash, limit, ipGuard)
+        consumeViaEvents(db, opts.visitorId, ipHash, limit, ipGuard, day)
       );
       if (events) return events;
     } catch (e) {
@@ -243,5 +259,5 @@ export async function consumeTrial(opts: {
     }
   }
 
-  return consumeViaMemory(opts.visitorId, ipHash, limit, ipGuard, opts.clientUsed);
+  return consumeViaMemory(opts.visitorId, ipHash, limit, ipGuard, opts.clientUsed, day);
 }

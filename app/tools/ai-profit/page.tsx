@@ -14,7 +14,7 @@ import { AiProfitChat } from "@/components/site/ai-profit-chat";
 export const metadata: Metadata = buildMetadata({
   title: "AI核价助手｜跨境利润计算与汽配毛利测算",
   description:
-    "AI核价助手：用大白话说清采购价、运费、目标市场与预估售价，自动算清头程、尾程、平台佣金 15%、退货损耗 5% 之后的真实毛利，并提示跨境风险。全渠道统一口径，支持多平台毛利测算、汽配跨境选品核价，每位访客免费体验 3 次。",
+    "AI核价助手：用大白话说清采购价、运费、目标市场与预估售价，自动算清头程、尾程、平台佣金 15%、退货损耗 5% 之后的真实毛利，并提示跨境风险。全渠道统一口径，支持多平台毛利测算、汽配跨境选品核价，每位访客每天免费体验 3 次。",
   path: "/tools/ai-profit",
   keywords: [
     "AI核价",
@@ -74,7 +74,7 @@ const APP_SCHEMA: Record<string, unknown> = {
     "@type": "Offer",
     price: "0",
     priceCurrency: "CNY",
-    description: "每位访客免费体验 3 次",
+    description: "每位访客每天免费体验 3 次",
   },
 };
 
@@ -95,7 +95,7 @@ export default function AiProfitPage() {
       <PageHero
         tag="工具库 · AI 核价"
         title="AI 跨境利润测算助手"
-        desc="别再靠一张死 Excel 拍脑袋定价。用大白话说清你的货、目标市场和定价，先算真实毛利，再看风险。全渠道统一口径，每位访客免费体验 3 次。"
+        desc="别再靠一张死 Excel 拍脑袋定价。用大白话说清你的货、目标市场和定价，先算真实毛利，再看风险。全渠道统一口径，每位访客每天免费体验 3 次。"
       />
 
       <section className="section-pad">

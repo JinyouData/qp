@@ -2,24 +2,26 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
-  AI_CHAT_SYSTEM_PROMPT,
   TRIAL_LIMIT_MESSAGE,
   computeProfit,
   formatCalcForPrompt,
-  mockReply,
   parseCalcInput,
 } from "@/lib/ai-profit";
+import { AI_TOOLS, type ToolType } from "@/lib/ai-tools";
+import { SYSTEM_PROMPTS, demoReply, referenceFor } from "@/lib/ai-prompts";
 import { consumeTrial } from "@/lib/ai-chat-usage";
 import { desensitizePlatforms } from "@/lib/desensitize";
 
 // Cloudflare Pages（next-on-pages）只支持 Edge Runtime
 export const runtime = "edge";
 
+/** 工具库四个 AI 助手共用这一个接口，靠 tool_type 分发不同 System Prompt */
 const BodySchema = z.object({
   message: z.string().min(1).max(1000),
   visitorId: z.string().min(4).max(64).regex(/^[A-Za-z0-9_-]+$/),
+  tool_type: z.enum(["profit", "selection", "oe-match", "inventory"]).default("profit"),
   /**
-   * 前端 localStorage 里已用次数。只作为展示与即时拦截，
+   * 前端 localStorage 里当天已用次数。只作为展示与即时拦截，
    * 以及数据库完全不可达时内存兜底的「只能报高、不能报低」上界；
    * 正常路径一律由服务端账本裁决，前端改这个字段无法给自己加次数。
    */
@@ -28,7 +30,7 @@ const BodySchema = z.object({
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
-/** API Key 只在这里读取，永远不会下发到浏览器；未配置则走本地演示模式 */
+/** API Key 只在这里读取，永远不会下发到浏览器；未配置则走确定性演示引擎 */
 function providerConfig() {
   const provider = (process.env.AI_CHAT_PROVIDER ?? "deepseek").toLowerCase();
 
@@ -72,30 +74,37 @@ export async function POST(req: Request) {
     );
   }
 
-  const { visitorId, used } = parsed.data;
-  // 访客原话先脱敏：用户自己打了具体渠道名，也不让测算、模型与回复跟着复述
-  const message = desensitizePlatforms(parsed.data.message);
+  const { visitorId, used, tool_type: toolType } = parsed.data;
+  const tool: ToolType = toolType;
+  const toolConfig = AI_TOOLS[tool];
 
-  // ---- 1) 试用门槛：服务端账本判定 + 原子扣次数 ----
-  // Supabase 持久化（ai_chat_usage RPC → events 表 → 内存兜底），
-  // Edge 多实例共享同一份额度；清浏览器缓存换 visitor_id 仍按出口 IP 拦截。
+  // ---- 1) 试用门槛：服务端按天账本判定 + 原子扣次数 ----
+  // Supabase 持久化（RPC → events 表 → 内存兜底），Edge 多实例共享同一份额度；
+  // 每天北京时间 00:00 重置 3 次，四个工具共用这一份额度。
   const verdict = await consumeTrial({ req, visitorId, clientUsed: used });
   if (!verdict.allowed) {
     return NextResponse.json(
       {
         error: "trial_limit",
         remaining: 0,
-        message: TRIAL_LIMIT_MESSAGE,
+        tool_type: tool,
+        message: tool === "profit" ? TRIAL_LIMIT_MESSAGE : toolConfig.limitMessage,
         usage_source: verdict.source,
       },
       { status: 429, headers: NO_STORE }
     );
   }
 
-  // ---- 2) 数字由代码算，模型只负责解释与风险提醒 ----
-  const input = parseCalcInput(message);
-  const calc = computeProfit(input);
-  const detail = formatCalcForPrompt(message, calc, input);
+  // 访客原话先脱敏：用户自己打了具体渠道名，也不让测算、模型与回复跟着复述
+  const message = desensitizePlatforms(parsed.data.message);
+
+  // ---- 2) 数字 / 评分 / 风险 / 折价全由代码算，模型只负责解释 ----
+  const isProfit = tool === "profit";
+  const input = isProfit ? parseCalcInput(message) : null;
+  const calc = isProfit && input ? computeProfit(input) : null;
+  const detail = isProfit && calc && input
+    ? `${formatCalcForPrompt(message, calc, input)}\n\n【用户原话】${message}\n（若原话与测算明细冲突，以测算明细为准，并在回答里说明。）`
+    : referenceFor(tool, message);
   const cfg = providerConfig();
 
   let reply = "";
@@ -118,13 +127,10 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             model: cfg.model,
             temperature: 0.3,
-            max_tokens: 500,
+            max_tokens: 600,
             messages: [
-              { role: "system", content: AI_CHAT_SYSTEM_PROMPT },
-              {
-                role: "user",
-                content: `${detail}\n\n【用户原话】${message}\n（若原话与测算明细冲突，以测算明细为准，并在回答里说明。）`,
-              },
+              { role: "system", content: SYSTEM_PROMPTS[tool] },
+              { role: "user", content: detail },
             ],
           }),
         });
@@ -141,14 +147,14 @@ export async function POST(req: Request) {
       reply = text;
       mode = "live";
     } catch (err) {
-      // 上游超时/欠费/限流都不让体验中断，降级为同一口径的本地回复
+      // 上游超时/欠费/限流都不让体验中断，降级为同一口径的确定性回复
       console.error("[ai-chat] 上游失败，降级演示回复：", err);
-      reply = mockReply(message, calc, input);
+      reply = demoReply(tool, message, calc ?? undefined, input ?? undefined);
       mode = "fallback";
     }
   } else {
-    // 没配 Key：本地演示模式，界面 / 测算 / 限流全部可测
-    reply = mockReply(message, calc, input);
+    // 没配 Key：确定性演示引擎，界面 / 测算 / 打分 / 限流全部可完整体验
+    reply = demoReply(tool, message, calc ?? undefined, input ?? undefined);
   }
 
   // 出口兜底：即便模型自由生成时带了具体渠道名，也一律改成区域口径
@@ -160,7 +166,8 @@ export async function POST(req: Request) {
       reply,
       mode,
       provider: cfg.name,
-      calc,
+      tool_type: tool,
+      calc: isProfit ? calc : null,
       remaining: verdict.remaining,
       limitReached: verdict.remaining <= 0,
       usage_source: verdict.source,

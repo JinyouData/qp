@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, ChevronDown, Database, ScanSearch, Sparkles, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, Boxes, Check, ChevronDown, Database, ScanSearch, Sparkles, Store } from "lucide-react";
 
 import { LIBRARIES, LIBRARY_ORDER, type Library, type Product } from "@/lib/types";
+import { AI_TOOLS, type ToolType } from "@/lib/ai-tools";
 import { ProductIcon } from "./icon";
 import { ProductCta } from "./product-cta";
 import { WecomCtaButton } from "./wecom-dialog";
@@ -69,16 +70,25 @@ function LibCard({ product, accent }: { product: Product; accent: string }) {
   );
 }
 
+/** 四个 AI 助手的图标映射（全部用站内已验证过的 lucide 图标） */
+const AI_ICONS = {
+  sparkles: Sparkles,
+  scan: ScanSearch,
+  shield: BadgeCheck,
+  boxes: Boxes,
+} as const;
+
 /**
  * 工具库首位：AI 核价助手（在线体验入口）。
- * 2026-11-15 取代原来的《核价毛利计算器》Excel 卡片。
  * col-span-full 让它在 PC 端独占一整行、视觉权重最高，
- * 下面 3 张工具卡正好排成一行 3 列；手机端自动变单列。
+ * 下面 3 张 AI 助手卡正好排成一行 3 列；手机端自动变单列。
+ * 2026-11-15：三张死表格全部换成在线 AI 助手，排版保持 1 + 3 不变。
  */
 function AiToolCard() {
+  const cfg = AI_TOOLS.profit;
   return (
     <Link
-      href="/tools/ai-profit"
+      href={cfg.path}
       className="group col-span-full flex flex-col gap-4 rounded-2xl border-2 border-brand-green/30 bg-brand-green-soft p-5 transition-colors hover:border-brand-green/60 hover:bg-brand-green-soft/70 sm:flex-row sm:items-center sm:justify-between sm:p-6"
     >
       <div className="flex min-w-0 items-start gap-3">
@@ -87,18 +97,44 @@ function AiToolCard() {
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-bold">AI 跨境利润测算助手</h3>
+            <h3 className="text-base font-bold">{cfg.cardTitle}</h3>
             <span className="rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold text-white">
-              活工具 · 免费体验 3 次
+              {cfg.cardBadge}
             </span>
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            别再靠死 Excel 拍脑袋定价：说清采购价、运费、目标市场与售价，按全渠道统一口径自动扣减头程、尾程、平台佣金 15%、退货损耗 5%，给出真实毛利与风险提醒。
-          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{cfg.cardDesc}</p>
         </div>
       </div>
       <span className="inline-flex shrink-0 items-center gap-1 self-start rounded-full bg-brand-green px-4 py-2 text-xs font-bold text-white sm:self-auto">
-        立即免费测算 <ArrowRight className="h-3.5 w-3.5" />
+        {cfg.cardButton} <ArrowRight className="h-3.5 w-3.5" />
+      </span>
+    </Link>
+  );
+}
+
+/** 三个新 AI 助手的小卡：图标 / 描述 / 按钮全部来自统一配置 */
+function AiMiniCard({ tool }: { tool: Exclude<ToolType, "profit"> }) {
+  const cfg = AI_TOOLS[tool];
+  const Icon = AI_ICONS[cfg.icon];
+  return (
+    <Link
+      href={cfg.path}
+      className="group flex h-full flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:border-brand-green/50 hover:bg-brand-green-soft/40"
+    >
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-green-soft text-brand-green">
+          <Icon className="h-4.5 w-4.5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold leading-snug">{cfg.cardTitle}</h3>
+          <span className="mt-1.5 inline-block rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-bold text-brand-orange-ink">
+            {cfg.cardBadge}
+          </span>
+        </div>
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">{cfg.cardDesc}</p>
+      <span className="mt-auto inline-flex items-center gap-1 border-t border-dashed pt-3 text-xs font-bold text-brand-green">
+        {cfg.cardButton} <ArrowRight className="h-3.5 w-3.5" />
       </span>
     </Link>
   );
@@ -215,27 +251,29 @@ function CollapsibleLibrary({
             className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-brand-green/30 bg-brand-green-soft px-3 py-1.5 text-xs font-semibold text-brand-green transition-colors hover:border-brand-green/60"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            免费体验 AI 核价助手
+            免费体验 4 个 AI 助手
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         )}
 
         <div id={bodyId} role="region" aria-labelledby={titleId} className="acc-body">
           <div className="acc-inner">
-            {/* 知识库 6 项：PC 端 md 起固定 3 列 = 完美 2 行 × 3 列，不留空位；
-                手机端单列纵向。工具库首位是跨整行的 AI 核价助手，
-                下面 3 张工具卡在 PC 端正好排成一行 3 列。 */}
-            <div
-              className={`mt-5 grid gap-3 ${
-                libKey === "kb"
-                  ? "grid-cols-1 md:grid-cols-3"
-                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-              }`}
-            >
-              {libKey === "tools" && <AiToolCard />}
-              {items.map((p) => (
-                <LibCard key={p.id} product={p} accent={theme.accent} />
-              ))}
+            {/* 统一 3 列：知识库 6 项 = 2 行 × 3 列；
+                工具库 = 首位跨整行的 AI 核价助手 + 第二行 3 张 AI 助手卡；
+                手机端一律单列纵向，不留空缺。 */}
+            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+              {libKey === "tools" ? (
+                <>
+                  <AiToolCard />
+                  <AiMiniCard tool="selection" />
+                  <AiMiniCard tool="oe-match" />
+                  <AiMiniCard tool="inventory" />
+                </>
+              ) : (
+                items.map((p) => (
+                  <LibCard key={p.id} product={p} accent={theme.accent} />
+                ))
+              )}
             </div>
           </div>
         </div>

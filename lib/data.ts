@@ -51,7 +51,7 @@ export const FALLBACK_PRODUCTS: Product[] = [
     positioning: "一线在用的表格模板，复制过去就能填",
     problem: "想提效但不知道好用的表格长什么样",
     audience: "有现成业务、想立刻提效的团队",
-    deliverable: "选品评分表 / 供应商评估表 / 库存周转表 / 客服话术库",
+    deliverable: "选品记录 / 供应商评估 / 库存盘点 / 客服话术四类模板",
     price: "免费 · 联系即得",
     cta_type: "claim", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
@@ -65,37 +65,11 @@ export const FALLBACK_PRODUCTS: Product[] = [
     cta_type: "claim", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
 
-  /* ================= 板块二 · 工具库（¥99 – ¥299 · 现成工具，直接落地） ================= */
-  {
-    id: 14, slug: "toolkit-selection", name: "选品评分表", icon: "calculator", library: "tools", category: "knowledge",
-    positioning: "把「要不要进这批货」变成一张能算出分数的表",
-    problem: "选品靠感觉，同一个品类这次赚下次亏，说不清为什么",
-    audience: "每周要做选品决策的卖家与采购",
-    deliverable: "五维评分表（自动算分）+ 测款记录表 + 复盘模板 · Excel / 在线表格双版本",
-    price: "¥199",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
-  },
-  /* 2026-11-15：《核价毛利计算器》已下线。工具库首位改挂
-     /tools/ai-profit 的 AI 核价助手展示卡（见 library-sections.tsx），
-     它是可在线体验的应用，不再是产品详情模板里的一张 Excel。 */
-  {
-    id: 16, slug: "toolkit-fitment", name: "适配校验表", icon: "scan-search", library: "tools", category: "knowledge",
-    positioning: "按三层校验法，把适配数据一条条过一遍",
-    problem: "适配数据错了，退货、差评、压货一起来，一次就赔掉几个月利润",
-    audience: "被适配问题反复拖住的团队与修理厂",
-    deliverable: "交叉验证清单 + 存疑标记表 + 一线回测记录表 + 专家复核申请模板",
-    price: "¥299",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
-  },
-  {
-    id: 17, slug: "toolkit-inventory", name: "库存周转模板", icon: "boxes", library: "tools", category: "knowledge",
-    positioning: "把压在仓库里的钱算清楚，再决定清还是留",
-    problem: "滞销 SKU 占压资金，但不知道该清哪些、清多少、走什么渠道",
-    audience: "有现货库存的经销商与修理厂",
-    deliverable: "安全库存模型 + 滞销分级表 + 渠道分流方案表 + 月度盘库 SOP",
-    price: "¥199",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
-  },
+  /* ================= 板块二 · 工具库 =================
+     2026-11-15 终极 AI 化：三张死表格（选品评分表 / 适配校验表 / 库存周转模板）
+     连同更早下线的《核价毛利计算器》全部移除。工具库现在由四个可在线对话的
+     AI 助手组成，卡片直接由 library-sections.tsx 渲染并指向 /tools/ai-* 路由，
+     不再是产品详情模板里的一张 Excel，因此这里不保留任何 tools 产品行。 */
 
   /* ================= 板块三 · 数据库（¥999 / 年 · 核心，看透真实利润） ================= */
   {
@@ -244,6 +218,11 @@ const RETIRED_PRODUCT_SLUGS = new Set([
   // 同日：《核价毛利计算器》由 /tools/ai-profit 的 AI 核价助手取代，
   // 防止 Supabase 里的旧行把这张 Excel 卡片带回来。
   "toolkit-pricing",
+  // 同日：三张表格工具由 /tools/ai-* 的三个 AI 助手取代，
+  // 防止 Supabase 里的旧行把 Excel 卡片带回官网。
+  "toolkit-selection",
+  "toolkit-fitment",
+  "toolkit-inventory",
 ]);
 
 /**
