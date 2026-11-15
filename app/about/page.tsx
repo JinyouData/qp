@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = buildMetadata({
   title: "关于我们",
-  description: "汽配知识局是汽配行业知识资产运营商：把隐性知识变成可交易资产。不卖货、不代运营、不碰交易。",
+  description: "汽配知识局是专注汽配跨境的数据智库：提供查得到的知识库、用得上的工具库、看透利润的数据库。不卖货、不代运营、不碰交易。",
   path: "/about",
   keywords: [KEYWORDS.knowledge, KEYWORDS.data, KEYWORDS.ai],
 });
@@ -61,8 +61,8 @@ export default function AboutPage() {
 
       <PageHero
         tag="ABOUT"
-        title="我们是汽配行业知识资产运营商"
-        desc="把散落在老师傅脑子里、Excel 表里、聊天记录里的隐性知识，整理成查得到、学得会、可交易的知识资产。"
+        title="我们是专注汽配跨境的数据智库"
+        desc="把散落在老师傅脑子里、Excel 表里、聊天记录里的经验，整理成查得到的知识库、用得上的工具库、看透利润的数据库。"
         aside={<DataTerminal />}
       >
         <p className="text-base font-semibold text-brand-green">
