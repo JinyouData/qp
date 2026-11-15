@@ -5,7 +5,7 @@ import { BrandLogo } from "./brand-logo";
 
 const COLS: { title: string; links: { href: string; label: string }[] }[] = [
   {
-    title: "三库服务",
+    title: "智库服务",
     links: [
       { href: "/products", label: "服务目录" },
       { href: "/products#lib-kb", label: "知识库" },
@@ -44,9 +44,12 @@ export function Footer() {
             <Link href="/" className="mb-4 inline-flex items-center">
               <BrandLogo />
             </Link>
-            <p className="text-sm leading-relaxed">
-              汽配行业知识资产运营商——知识库建认知，工具库做落地，数据库看利润。
-              从知识到工具，从工具到数据。
+            {/* 两段式：第一段是品牌主张，用品牌绿加粗凸显；第二段说明业务 */}
+            <p className="text-sm font-semibold leading-relaxed text-brand-green">
+              用数据洞察，化繁为金。
+            </p>
+            <p className="mt-2 text-sm leading-relaxed">
+              专注汽配跨境的数据智库。提供查得到的知识库、用得上的工具库、看透利润的数据库。
             </p>
             <p className="mt-3 text-xs">
               📮
