@@ -45,3 +45,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python 脚本自检产物（gen-og.py 语法检查会生成）
+__pycache__/
+*.py[cod]
