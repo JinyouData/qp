@@ -10,12 +10,18 @@ import { getStoredUtm } from "@/lib/utm";
  *
  * - 监听 pathname + searchParams 变化，每次切换静默打一次 /api/track
  * - referrer 只取来源域名（xiaohongshu.com / douyin.com / direct / internal）
- * - utm_source 优先取当前 URL 参数，其次取首次落地时存下的渠道（首触归因），
- *   方便在小红书发帖时用不同链接区分笔记效果
- * - 发送用 navigator.sendBeacon：浏览器在空闲时投递，不占主线程、不阻塞渲染；
+ * - utm_source / medium / campaign：优先取当前 URL 参数，其次取首次落地时
+ *   存下的渠道（首触归因），方便在小红书发帖时用不同链接区分笔记效果
+ * - visitor_id：localStorage 里生成的匿名 UUID，只用于「同一个人算一次」，
+ *   不含任何个人信息，也不与账号绑定（与《隐私政策》口径一致）
+ * - 发送用 navigator.sendBeacon：浏览器空闲时投递，不占主线程、不阻塞渲染；
  *   不支持时降级为 keepalive fetch
  * - 全链路 try/catch 吞掉异常：统计失败绝不影响用户浏览
  */
+
+const VID_KEY = "qipei_vid";
+/** 同源默认走 /api/track；站点与中控台分域时可用 NEXT_PUBLIC_TRACK_ENDPOINT 覆盖 */
+const ENDPOINT = process.env.NEXT_PUBLIC_TRACK_ENDPOINT || "/api/track";
 
 /** 只保留非 utm_* 的查询参数，避免 path 被渠道参数撑成上千种组合 */
 function normalizePath(pathname: string, params: URLSearchParams): string {
@@ -41,6 +47,30 @@ function referrerHost(isInternalNav: boolean): string {
   }
 }
 
+/** 匿名访客 ID：localStorage 持久，清缓存/换设备会变（属预期） */
+function visitorId(): string {
+  try {
+    const old = localStorage.getItem(VID_KEY);
+    if (old && old.length >= 8) return old;
+    const rnd =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID().replace(/-/g, "").slice(0, 20)
+        : Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    const id = `v${rnd}`;
+    localStorage.setItem(VID_KEY, id);
+    return id;
+  } catch {
+    return "";
+  }
+}
+
+function deviceType(): string {
+  if (typeof navigator === "undefined") return "未知";
+  return /iphone|android|mobile|ipad|harmony|micromessenger/i.test(navigator.userAgent)
+    ? "移动端"
+    : "桌面端";
+}
+
 export function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -58,22 +88,27 @@ export function PageViewTracker() {
     const isInternalNav = lastSent.current !== null;
     lastSent.current = path;
 
-    const utmFromUrl = params.get("utm_source");
-    let utmSource = utmFromUrl?.trim() || "";
-    if (!utmSource) {
-      // 首触归因：用户第一次带 utm 进来后，站内后续浏览仍算同一渠道
-      try {
-        utmSource = getStoredUtm().utm_source?.trim() || "";
-      } catch {
-        utmSource = "";
-      }
+    let stored: { utm_source?: string; utm_medium?: string; utm_campaign?: string } = {};
+    try {
+      stored = getStoredUtm();
+    } catch {
+      stored = {};
     }
+
+    const utmSource = (params.get("utm_source")?.trim() || stored.utm_source?.trim() || "") as string;
+    const utmMedium = (params.get("utm_medium")?.trim() || stored.utm_medium?.trim() || "") as string;
+    const utmCampaign =
+      (params.get("utm_campaign")?.trim() || stored.utm_campaign?.trim() || "") as string;
 
     const payload = JSON.stringify({
       type: "page_view",
       path,
       referrer: referrerHost(isInternalNav),
       utm_source: utmSource || null,
+      utm_medium: utmMedium || null,
+      utm_campaign: utmCampaign || null,
+      visitor_id: visitorId(),
+      device: deviceType(),
       ts: new Date().toISOString(),
     });
 
@@ -93,9 +128,9 @@ export function PageViewTracker() {
       try {
         if (typeof navigator !== "undefined" && navigator.sendBeacon) {
           const blob = new Blob([payload], { type: "application/json" });
-          if (navigator.sendBeacon("/api/track", blob)) return;
+          if (navigator.sendBeacon(ENDPOINT, blob)) return;
         }
-        fetch("/api/track", {
+        fetch(ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: payload,

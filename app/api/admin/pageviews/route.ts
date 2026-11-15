@@ -120,3 +120,50 @@ export async function GET(req: Request) {
     recent: rows.slice(0, 20),
   });
 }
+
+/**
+ * 清理数据：
+ * - ?ids=1,2,3  仅删除指定 id（用来清掉自己造的测试记录）
+ * - 不带参数    只删除 path 以 /__ 开头的行（埋点自检探针路径）
+ * 两种方式都不会碰到正常流量。
+ */
+export async function DELETE(req: Request) {
+  if (!authorized(req)) {
+    return NextResponse.json({ ok: false, error: "未授权" }, { status: 401 });
+  }
+  const db = getSupabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ ok: false, error: "Supabase 客户端不可用" }, { status: 500 });
+  }
+
+  const idsParam = new URL(req.url).searchParams.get("ids");
+  if (idsParam) {
+    const ids = idsParam
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isInteger(n) && n > 0);
+    if (ids.length === 0) {
+      return NextResponse.json({ ok: false, error: "ids 参数不合法" }, { status: 400 });
+    }
+    const del = await db.from("page_views").delete({ count: "exact" }).in("id", ids);
+    if (del.error) return NextResponse.json({ ok: false, error: del.error.message }, { status: 500 });
+    return NextResponse.json({ ok: true, deleted: del.count ?? 0 });
+  }
+
+  const { data, error } = await db
+    .from("page_views")
+    .select("id,path")
+    .order("id", { ascending: false })
+    .limit(5000);
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+
+  const ids = (data ?? [])
+    .filter((r) => (r as { path: string | null }).path?.startsWith("/__"))
+    .map((r) => (r as { id: number }).id);
+
+  if (ids.length === 0) return NextResponse.json({ ok: true, deleted: 0 });
+
+  const del = await db.from("page_views").delete({ count: "exact" }).in("id", ids);
+  if (del.error) return NextResponse.json({ ok: false, error: del.error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, deleted: del.count ?? ids.length });
+}
