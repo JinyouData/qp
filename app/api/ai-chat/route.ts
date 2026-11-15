@@ -10,6 +10,7 @@ import {
   parseCalcInput,
 } from "@/lib/ai-profit";
 import { consumeTrial } from "@/lib/ai-chat-usage";
+import { desensitizePlatforms } from "@/lib/desensitize";
 
 // Cloudflare Pages（next-on-pages）只支持 Edge Runtime
 export const runtime = "edge";
@@ -71,7 +72,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const { message, visitorId, used } = parsed.data;
+  const { visitorId, used } = parsed.data;
+  // 访客原话先脱敏：用户自己打了具体渠道名，也不让测算、模型与回复跟着复述
+  const message = desensitizePlatforms(parsed.data.message);
 
   // ---- 1) 试用门槛：服务端账本判定 + 原子扣次数 ----
   // Supabase 持久化（ai_chat_usage RPC → events 表 → 内存兜底），
@@ -147,6 +150,9 @@ export async function POST(req: Request) {
     // 没配 Key：本地演示模式，界面 / 测算 / 限流全部可测
     reply = mockReply(message, calc, input);
   }
+
+  // 出口兜底：即便模型自由生成时带了具体渠道名，也一律改成区域口径
+  reply = desensitizePlatforms(reply);
 
   // 额度已在 consumeTrial 里扣过；这里只把服务端权威的剩余次数回给前端
   return NextResponse.json(

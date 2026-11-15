@@ -9,16 +9,17 @@ import { SectionHeading } from "@/components/site/section-heading";
 import { AiProfitChat } from "@/components/site/ai-profit-chat";
 
 /* 正式版：已进入 sitemap、允许全量索引。
-   Title / Description / H2 覆盖「AI核价」「Ozon利润计算」「亚马逊毛利测算」等核心词。 */
+   Title / Description / H2 覆盖「AI核价」「跨境利润计算」「多平台毛利测算」等核心词。
+   【全渠道中立红线】全页不出现任何具体电商平台名称，只用区域 / 全渠道口径。 */
 export const metadata: Metadata = buildMetadata({
-  title: "AI核价助手｜Ozon利润计算与亚马逊汽配毛利测算",
+  title: "AI核价助手｜跨境利润计算与汽配毛利测算",
   description:
-    "AI核价助手：用大白话说清采购价、运费、平台与预估售价，自动算清头程、尾程、平台佣金 15%、退货损耗 5% 之后的真实毛利，并提示跨境风险。支持 Ozon利润计算、亚马逊毛利测算、汽配跨境选品核价，每位访客免费体验 3 次。",
+    "AI核价助手：用大白话说清采购价、运费、目标市场与预估售价，自动算清头程、尾程、平台佣金 15%、退货损耗 5% 之后的真实毛利，并提示跨境风险。全渠道统一口径，支持多平台毛利测算、汽配跨境选品核价，每位访客免费体验 3 次。",
   path: "/tools/ai-profit",
   keywords: [
     "AI核价",
-    "Ozon利润计算",
-    "亚马逊毛利测算",
+    "跨境利润计算",
+    "多平台毛利测算",
     "汽配跨境利润计算",
     "AI跨境利润测算助手",
     "汽配核价工具",
@@ -45,10 +46,11 @@ const RULES = [
   },
 ];
 
-const PLATFORMS = [
-  { name: "Ozon", use: "车灯、刹车片等品类的卢布售价折算与头程时效风险" },
-  { name: "亚马逊", use: "FBA 尾程、佣金与合规标题改写场景的毛利校验" },
-  { name: "Temu / eBay", use: "低客单价下的佣金与退货损耗敏感性测算" },
+/** 只按区域 / 场景描述，全渠道中立，不点名任何渠道 */
+const MARKETS = [
+  { name: "欧洲平台", use: "车灯、刹车片等品类的外币售价折算与头程时效风险" },
+  { name: "北美平台", use: "海外仓配、佣金与合规标题改写场景的毛利校验" },
+  { name: "低客单价渠道", use: "活动降价下的佣金与退货损耗敏感性测算" },
 ];
 
 /** 工具页结构化数据：让搜索引擎把它识别为可在线使用的应用，而不是一篇普通文章 */
@@ -60,7 +62,7 @@ const APP_SCHEMA: Record<string, unknown> = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "面向汽配跨境卖家的 AI 核价工具：按采购价、头程、尾程、平台佣金 15%、退货损耗 5% 计算真实毛利，支持 Ozon 利润计算与亚马逊毛利测算，并提示汇率、退货率与适配错配风险。",
+    "面向汽配跨境卖家的 AI 核价工具：按采购价、头程、尾程、平台佣金 15%、退货损耗 5% 计算真实毛利，全渠道统一口径，支持多平台毛利测算，并提示汇率、退货率与适配错配风险。",
   featureList: [
     "毛利与毛利率自动测算",
     "头程 / 尾程缺省估算并标注",
@@ -93,7 +95,7 @@ export default function AiProfitPage() {
       <PageHero
         tag="工具库 · AI 核价"
         title="AI 跨境利润测算助手"
-        desc="别再靠一张死 Excel 拍脑袋定价。用大白话说清你的货、平台和目标价，先算真实毛利，再看风险。Ozon 利润计算、亚马逊毛利测算都支持，每位访客免费体验 3 次。"
+        desc="别再靠一张死 Excel 拍脑袋定价。用大白话说清你的货、目标市场和定价，先算真实毛利，再看风险。全渠道统一口径，每位访客免费体验 3 次。"
       />
 
       <section className="section-pad">
@@ -132,18 +134,18 @@ export default function AiProfitPage() {
         </div>
       </section>
 
-      {/* 关键词落地段：让「AI核价 / Ozon利润计算 / 亚马逊毛利测算」有对应正文，
+      {/* 关键词落地段：让「AI核价 / 跨境利润计算 / 多平台毛利测算」有对应正文，
           而不是只堆在 meta 里；同时给访客明确的使用场景。 */}
       <section className="section-pad">
         <div className="container-site max-w-4xl">
           <h2 className="text-xl font-bold sm:text-2xl">
-            AI核价能算什么：Ozon 利润计算与亚马逊毛利测算
+            AI核价能算什么：多平台、多区域的统一毛利口径
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            同一个配件在不同平台，吃掉利润的项目完全不同。把采购价、运费和预估售价说清楚，助手会按统一口径逐项扣减并给出毛利、毛利率与风险提示；数字由系统计算，AI 只做解释，不会自己编账。
+            同一个配件在不同市场、不同渠道，吃掉利润的项目完全不同。把采购价、运费和预估售价说清楚，助手会按统一口径逐项扣减并给出毛利、毛利率与风险提示；数字由系统计算，AI 只做解释，不会自己编账。
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {PLATFORMS.map((p) => (
+            {MARKETS.map((p) => (
               <div key={p.name} className="rounded-xl border bg-card p-4">
                 <p className="text-sm font-bold text-brand-green">{p.name}</p>
                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{p.use}</p>

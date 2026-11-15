@@ -208,7 +208,7 @@ export function AiProfitChat() {
             <Bot className="h-8 w-8 text-brand-green/60" strokeWidth={1.5} />
             <p className="text-sm font-semibold">用大白话说清你的货和平台</p>
             <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
-              例如「Ozon 卖车灯，采购价 85 元，预估售价 320 元」。缺的数字我会按默认口径估，并标注出来。
+              例如「欧洲平台卖车灯，采购价 85 元，预估售价 320 元」。缺的数字我会按默认口径估，并标注出来。
             </p>
           </div>
         )}
@@ -281,7 +281,7 @@ export function AiProfitChat() {
           }}
           rows={2}
           maxLength={1000}
-          placeholder="例如：亚马逊卖刹车片，采购 60 元，售价 260 元，头程 20 元，能赚多少？"
+          placeholder="例如：北美平台卖刹车片，采购 60 元，售价 260 元，头程 20 元，能赚多少？"
           className="min-h-[64px] flex-1 resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-brand-green/50"
         />
         <Button variant="orange" onClick={() => void ask(input)} disabled={loading || !input.trim()} className="h-11 shrink-0">

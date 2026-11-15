@@ -93,7 +93,7 @@ function AiToolCard() {
             </span>
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            别再靠死 Excel 拍脑袋定价：说清采购价、运费、平台与售价，自动扣减头程、尾程、平台佣金 15%、退货损耗 5%，给出 Ozon 利润计算、亚马逊毛利测算与风险提醒。
+            别再靠死 Excel 拍脑袋定价：说清采购价、运费、目标市场与售价，按全渠道统一口径自动扣减头程、尾程、平台佣金 15%、退货损耗 5%，给出真实毛利与风险提醒。
           </p>
         </div>
       </div>

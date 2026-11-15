@@ -1,5 +1,6 @@
 import type { Product, CaseStudy, Partner, Library } from "./types";
 import { fetchTable } from "./supabase";
+import { desensitizePlatforms } from "./desensitize";
 
 /* ============================================================
    兜底数据：未接入 Supabase 时站点照常运行（demo 模式）。
@@ -207,14 +208,7 @@ const DELIVERY_REPLACERS: Array<[RegExp, string]> = [
   [/小鹅通/g, "企业微信"],
   [/Baklib\s*\/?\s*飞书/g, "内部资料库"],
   [/Baklib/g, "内部资料库"],
-  // —— 去具体平台化（2026-10-28）：官网保持中立，不点名任何销售渠道 ——
-  // 先折叠「Ozon / eBay / Temu」这类并列列举，避免变成「跨境平台 / 跨境平台 / 跨境平台」
-  [
-    /(?:Ozon|eBay|Temu|Jumia|Amazon|亚马逊|速卖通|Shopee|Lazada|Walmart|Wish|SHEIN)(?:\s*(?:\/|、|,|，|与|和)\s*(?:Ozon|eBay|Temu|Jumia|Amazon|亚马逊|速卖通|Shopee|Lazada|Walmart|Wish|SHEIN))+/gi,
-    "多个跨境平台",
-  ],
-  [/(?:Ozon|eBay|Temu|Jumia|Amazon|亚马逊|速卖通|Shopee|Lazada|Walmart|Wish|SHEIN)/gi, "跨境平台"],
-  [/拼多多|淘宝|天猫|京东/g, "电商渠道"],
+  // —— 去具体平台化统一交给 lib/desensitize.ts（唯一真源），见 sanitizeText ——
   // —— 官方邮箱统一（2026-11-05）：数据库历史文案里的旧域名/占位邮箱一律改写 ——
   [/[A-Za-z0-9._%+-]+@(?:qipeizhishiju|qipeizhishi)\.com/gi, "service@jinyoudata.com"],
   [/[A-Za-z0-9._%+-]+@yourdomain\.com/gi, "service@jinyoudata.com"],
@@ -223,9 +217,9 @@ const DELIVERY_REPLACERS: Array<[RegExp, string]> = [
 function sanitizeText<T>(v: T): T {
   if (typeof v !== "string") return v;
   const text = String(v);
-  return DELIVERY_REPLACERS.reduce(
-    (acc, [re, to]) => acc.replace(re, to),
-    text
+  // 先做历史口径改写，再统一走全渠道中立脱敏（覆盖所有从数据库读回的文案）
+  return desensitizePlatforms(
+    DELIVERY_REPLACERS.reduce((acc, [re, to]) => acc.replace(re, to), text)
   ) as T;
 }
 
