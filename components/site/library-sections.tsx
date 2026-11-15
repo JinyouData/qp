@@ -74,7 +74,7 @@ function LibCard({ product, accent }: { product: Product; accent: string }) {
  *
  * 默认状态由 CSS 按视口决定（data-state="auto"）：
  *   - >=768px：两个板块都展开，保持 PC 端大气平铺
- *   - <768px：知识库展开，工具库收起
+ *   - <768px：知识库 / 工具库都默认收起，先露标题、卖点与价签，点标题再看清单
  * 这样服务端直出的 HTML 在任何屏宽都是对的，水合前不会先摊开再突然收起。
  * 用户点过标题栏后切到 data-state="manual"，此后完全由 React 状态接管，
  * 断点是 Tailwind 的 md（768px），与 CSS 媒体查询保持一致。
@@ -204,7 +204,7 @@ export function LibrarySections({ products }: { products: Product[] }) {
               index={index}
               items={items}
               theme={theme}
-              mobileDefaultOpen={key === "kb"}
+              mobileDefaultOpen={false}
             />
           );
         }
