@@ -215,3 +215,74 @@
     animation: none;
   }
 }
+
+/* ============================================================
+   服务目录手风琴（知识库 / 工具库）
+   - 默认态 data-state="auto" 由 CSS 按视口决定，服务端直出即正确，
+     水合前不会「先摊开再突然收起」；用户点击后 data-state="manual" 接管。
+   - grid-template-rows 0fr↔1fr 负责平滑高度动画；max-height 是给
+     不插值 fr 的旧版浏览器兜底的同类过渡。
+   ============================================================ */
+.acc-block {
+  --acc-open: 1;
+}
+
+.acc-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  max-height: 2200px;
+  opacity: 1;
+  transition:
+    grid-template-rows 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 260ms ease;
+}
+
+.acc-inner {
+  min-height: 0;
+  overflow: hidden;
+  visibility: visible;
+  transition: visibility 0s linear 0s;
+}
+
+/* 箭头：收起朝下（点开展开），展开旋转 180° 朝上（点上收起） */
+.acc-chevron {
+  transform: rotate(calc(var(--acc-open) * 180deg));
+  transition: transform 360ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 767px) {
+  .acc-block[data-state="auto"][data-mobile-default="closed"] {
+    --acc-open: 0;
+  }
+  .acc-block[data-state="auto"][data-mobile-default="closed"] .acc-body {
+    grid-template-rows: 0fr;
+    max-height: 0;
+    opacity: 0;
+  }
+  .acc-block[data-state="auto"][data-mobile-default="closed"] .acc-inner {
+    visibility: hidden;
+    transition: visibility 0s linear 360ms;
+  }
+}
+
+.acc-block[data-state="manual"][data-open="false"] {
+  --acc-open: 0;
+}
+.acc-block[data-state="manual"][data-open="false"] .acc-body {
+  grid-template-rows: 0fr;
+  max-height: 0;
+  opacity: 0;
+}
+.acc-block[data-state="manual"][data-open="false"] .acc-inner {
+  visibility: hidden;
+  transition: visibility 0s linear 360ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-body,
+  .acc-chevron,
+  .acc-inner {
+    transition: none;
+  }
+}
