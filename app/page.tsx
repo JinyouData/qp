@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ShieldCheck, Quote } from "lucide-react";
+import {
+  ArrowRight, BookOpen, CheckCircle2, Database, Quote, ShieldCheck, Sparkles,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +45,46 @@ const METHOD_STEPS = [
 ];
 
 const HERO_OFFER = "免费领取：Top 50 高毛利选品清单（内测版）";
+
+/* ---------- 首屏下方的「三库产品矩阵」轻量导航 ----------
+   承接看完数据卡片后的购买意图，把客户直接分流到服务目录的三个板块。
+   PC = 3 张并排细长卡；手机 = 1 列 3 行极简卡（同一套 DOM，靠响应式文字切换）。
+   三个入口统一跳 /products，并用页脚同款锚点直达对应板块。 */
+const PRODUCT_MATRIX = [
+  {
+    no: "01",
+    title: "知识库",
+    pcDesc: "构建认知（免费领）",
+    mobileTitle: "知识库·免费领",
+    cta: "查看免费资料",
+    mobileCta: "领取",
+    href: "/products#lib-kb",
+    icon: BookOpen,
+    featured: false,
+  },
+  {
+    no: "02",
+    title: "工具库",
+    pcDesc: "AI 助手 · 每天免费 3 次",
+    mobileTitle: "工具库·免费测",
+    cta: "体验AI工具",
+    mobileCta: "体验",
+    href: "/products#lib-tools",
+    icon: Sparkles,
+    featured: false,
+  },
+  {
+    no: "03",
+    title: "数据库",
+    pcDesc: "智库专属系统",
+    mobileTitle: "数据库·会员制(¥999/年)",
+    cta: "了解系统详情",
+    mobileCta: "了解",
+    href: "/products#lib-data",
+    icon: Database,
+    featured: true,
+  },
+];
 
 export default async function HomePage() {
   const cases = await getCases();
@@ -100,6 +142,85 @@ export default async function HomePage() {
             {/* 右侧视觉：纯前端绘制的悬浮数据看板（保持不动） */}
             <HeroDataBoard />
           </div>
+        </div>
+      </section>
+
+      {/* ========== 三库产品矩阵：轻量导航，承接首屏后的购买意图 ========== */}
+      <section aria-label="金游智库产品矩阵导航" className="bg-white">
+        <div className="container-site py-5 md:py-6">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] text-brand-green">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
+              金游智库 · 产品矩阵
+            </h2>
+            <p className="hidden text-xs text-muted-foreground sm:block">
+              按你的需要，直接进对应板块
+            </p>
+          </div>
+
+          <nav aria-label="三库入口" className="grid gap-2 md:grid-cols-3 md:gap-3">
+            {PRODUCT_MATRIX.map((m) => {
+              const Icon = m.icon;
+              return (
+                <Link
+                  key={m.no}
+                  href={m.href}
+                  className={`group relative flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange md:px-4 ${
+                    m.featured
+                      ? "border-brand-green bg-brand-green text-white hover:shadow-warm-md md:pb-3 md:pt-7"
+                      : "border-brand-green/15 bg-white text-foreground hover:border-brand-green/45 hover:shadow-warm"
+                  }`}
+                >
+                  {m.featured && (
+                    <span className="absolute right-3 top-2 hidden rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold text-white md:block">
+                      ¥999/年
+                    </span>
+                  )}
+
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg md:h-10 md:w-10 ${
+                      m.featured ? "bg-white/15 text-white" : "bg-brand-green-soft text-brand-green"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.9} />
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={`hidden text-[10px] font-bold tracking-[0.15em] md:inline ${
+                          m.featured ? "text-white/60" : "text-brand-green/55"
+                        }`}
+                      >
+                        {m.no}
+                      </span>
+                      <span className="text-[13px] font-bold md:hidden">{m.mobileTitle}</span>
+                      <span className="hidden text-base font-bold md:inline">{m.title}</span>
+                    </span>
+                    <span
+                      className={`mt-0.5 hidden text-xs md:block ${
+                        m.featured ? "text-white/75" : "text-muted-foreground"
+                      }`}
+                    >
+                      {m.pcDesc}
+                    </span>
+                  </span>
+
+                  <span
+                    className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-full border px-3 text-[11px] font-semibold transition-colors md:h-9 md:px-4 md:text-[13px] ${
+                      m.featured
+                        ? "border-white/45 bg-white text-brand-green group-hover:bg-white/90"
+                        : "border-brand-orange/35 bg-white text-brand-orange-ink group-hover:border-brand-orange/70 group-hover:bg-brand-orange-soft"
+                    }`}
+                  >
+                    <span className="md:hidden">{m.mobileCta}</span>
+                    <span className="hidden md:inline">{m.cta}</span>
+                    <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </section>
 
