@@ -148,7 +148,8 @@ export default async function HomePage() {
       {/* ========== 三库产品矩阵：轻量导航，承接首屏后的购买意图 ========== */}
       <section aria-label="金游智库产品矩阵导航" className="bg-white">
         <div className="container-site py-5 md:py-6">
-          <div className="mb-3 flex items-baseline justify-between gap-3">
+          {/* md:mb-5 给第三张卡的浮动价签留出与标题行的安全间距 */}
+          <div className="mb-3 flex items-baseline justify-between gap-3 md:mb-5">
             <h2 className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] text-brand-green">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
               金游智库 · 产品矩阵
@@ -167,12 +168,13 @@ export default async function HomePage() {
                   href={m.href}
                   className={`group relative flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange md:px-4 ${
                     m.featured
-                      ? "border-brand-green bg-brand-green text-white hover:shadow-warm-md md:pb-3 md:pt-7"
+                      ? "border-brand-green bg-brand-green text-white hover:shadow-warm-md"
                       : "border-brand-green/15 bg-white text-foreground hover:border-brand-green/45 hover:shadow-warm"
                   }`}
                 >
+                  {/* 价签浮在卡片上沿外侧，不参与 flex 流，三张卡内容才能统一垂直居中 */}
                   {m.featured && (
-                    <span className="absolute right-3 top-2 hidden rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold text-white md:block">
+                    <span className="absolute -top-2.5 right-3 z-10 hidden rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold leading-tight text-white shadow-sm md:block">
                       ¥999/年
                     </span>
                   )}
