@@ -19,7 +19,12 @@ import { getStoredUtm } from "@/lib/utm";
  * - 全链路 try/catch 吞掉异常：统计失败绝不影响用户浏览
  */
 
-const VID_KEY = "qipei_vid";
+/** 访客 ID 固定存这个 key：一次生成、长期复用，刷新/关页重开都不变 */
+const VID_KEY = "jinyou_vid";
+/** 老版本用的 key；读到就搬到新 key，避免升级当天把老访客算成两个人 */
+const LEGACY_VID_KEY = "qipei_vid";
+/** localStorage 被隐私模式禁用时的会话级兜底（至少本次会话内不漂移） */
+let cachedVid: string | null = null;
 /** 同源默认走 /api/track；站点与中控台分域时可用 NEXT_PUBLIC_TRACK_ENDPOINT 覆盖 */
 const ENDPOINT = process.env.NEXT_PUBLIC_TRACK_ENDPOINT || "/api/track";
 
@@ -47,20 +52,44 @@ function referrerHost(isInternalNav: boolean): string {
   }
 }
 
-/** 匿名访客 ID：localStorage 持久，清缓存/换设备会变（属预期） */
+/** 标准 UUID v4（老浏览器没有 crypto.randomUUID 时手动拼一个） */
+function newUuid(): string {
+  const c: Crypto | undefined =
+    typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  const b = new Uint8Array(16);
+  if (c && typeof c.getRandomValues === "function") {
+    c.getRandomValues(b);
+  } else {
+    for (let i = 0; i < 16; i += 1) b[i] = Math.floor(Math.random() * 256);
+  }
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+/**
+ * 匿名访客 ID：每次上报都先读 localStorage 里的固定 ID，只有第一次才生成。
+ * 绝不能在每次请求里现生成 UUID —— 那样 UV 会永远等于 PV。
+ * 清缓存 / 换设备 / 换浏览器会变（属预期，与《隐私政策》口径一致）。
+ */
 function visitorId(): string {
   try {
-    const old = localStorage.getItem(VID_KEY);
-    if (old && old.length >= 8) return old;
-    const rnd =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID().replace(/-/g, "").slice(0, 20)
-        : Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
-    const id = `v${rnd}`;
+    let id = localStorage.getItem(VID_KEY);
+    if (!id || id.length < 8) {
+      const legacy = localStorage.getItem(LEGACY_VID_KEY);
+      if (legacy && legacy.length >= 8) id = legacy;
+    }
+    if (!id || id.length < 8) id = newUuid();
+    // 每次都写回：既完成旧 key 迁移，也保证 ID 确实持久化
     localStorage.setItem(VID_KEY, id);
+    cachedVid = id;
     return id;
   } catch {
-    return "";
+    // 隐私模式禁用 localStorage：用会话级缓存兜底，而不是返回空串
+    if (!cachedVid) cachedVid = newUuid();
+    return cachedVid;
   }
 }
 

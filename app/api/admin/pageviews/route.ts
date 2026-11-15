@@ -121,11 +121,25 @@ export async function GET(req: Request) {
   });
 }
 
+/** 北京时间「今天」的半开区间 [00:00, 次日 00:00)，转成 UTC ISO 供 timestamptz 比较 */
+function todayWindowCN(): { start: string; end: string; day: string } {
+  const day = dayKeyCN(new Date().toISOString()); // YYYY-MM-DD（UTC+8）
+  // 北京时间 day 00:00 == UTC (day 00:00 - 8h)
+  const startMs = new Date(`${day}T00:00:00.000Z`).getTime() - 8 * 3600 * 1000;
+  return {
+    start: new Date(startMs).toISOString(),
+    end: new Date(startMs + 864e5).toISOString(),
+    day,
+  };
+}
+
 /**
- * 清理数据：
- * - ?ids=1,2,3  仅删除指定 id（用来清掉自己造的测试记录）
- * - 不带参数    只删除 path 以 /__ 开头的行（埋点自检探针路径）
- * 两种方式都不会碰到正常流量。
+ * 清理数据（按优先级匹配一种 scope）：
+ * - ?scope=today          清空北京时间今天的全部 page_views（修好埋点后从 0 UV 重来）
+ * - ?scope=today-no-vid   只清今天 visitor_id 为 null 的无效行
+ * - ?ids=1,2,3            仅删除指定 id
+ * - 不带参数              只删 path 以 /__ 开头的探针行（旧行为，保持兼容）
+ * today 系列可加 &dry=1 只统计、不删除。
  */
 export async function DELETE(req: Request) {
   if (!authorized(req)) {
@@ -136,7 +150,38 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: false, error: "Supabase 客户端不可用" }, { status: 500 });
   }
 
-  const idsParam = new URL(req.url).searchParams.get("ids");
+  const url = new URL(req.url);
+  const scope = url.searchParams.get("scope") ?? "";
+  const dry = url.searchParams.get("dry") === "1";
+
+  if (scope === "today" || scope === "today-no-vid") {
+    const win = todayWindowCN();
+    const filtered = () => {
+      let q = db
+        .from("page_views")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", win.start)
+        .lt("created_at", win.end);
+      if (scope === "today-no-vid") q = q.is("visitor_id", null);
+      return q;
+    };
+    if (dry) {
+      const probe = await filtered();
+      if (probe.error) return NextResponse.json({ ok: false, error: probe.error.message }, { status: 500 });
+      return NextResponse.json({ ok: true, dry: true, scope, window: win, would_delete: probe.count ?? 0 });
+    }
+    let del = db
+      .from("page_views")
+      .delete({ count: "exact" })
+      .gte("created_at", win.start)
+      .lt("created_at", win.end);
+    if (scope === "today-no-vid") del = del.is("visitor_id", null);
+    const res = await del;
+    if (res.error) return NextResponse.json({ ok: false, error: res.error.message }, { status: 500 });
+    return NextResponse.json({ ok: true, scope, window: win, deleted: res.count ?? 0 });
+  }
+
+  const idsParam = url.searchParams.get("ids");
   if (idsParam) {
     const ids = idsParam
       .split(",")

@@ -13,9 +13,11 @@ export const runtime = "edge";
 
    前端一律走本路由，浏览器不直连数据库（service key 不出服务端）。
 
-   page_views 写入是「全字段优先、核心字段兜底」两段式：
-   0011 迁移没跑时 visitor_id 等列不存在，PostgREST 会报列不存在，
-   此时退回 0010 的核心四列继续写 —— PV 不丢，只是 UV 暂时算不出来。
+   page_views 写入是「按缺失列渐进裁剪」：
+   线上曾出现「表有 visitor_id、唯独缺 utm_medium」的半迁移状态，
+   旧版两段式一遇到报错就整包退回 0010 的核心四列，把 visitor_id 一起砍掉，
+   结果 29 行全是 null、UV 退化成 PV。现在改为：报错里点名哪一列就只删哪一列，
+   visitor_id 排到最后才放弃 —— 只要表里能写，UV 就一定算得出来。
    ============================================================ */
 
 const EVENTS = [
@@ -89,6 +91,55 @@ function classify(referrer: string | null, utmSource: string | null): string {
   return "其他";
 }
 
+/* ---------- 页面浏览写入：按缺失列渐进裁剪 ---------- */
+
+/** PostgREST / supabase-js 报「列不存在」的两种常见文案 */
+const MISSING_COL_RE =
+  /(?:column\s+"?([a-z_][a-z0-9_]*)"?\s+of\s+relation|Could not find the '([a-z_][a-z0-9_]*)' column)/i;
+
+/** 裁剪优先级：与 UV 无关的先砍，visitor_id 最后才放弃（它是 UV 的唯一依据） */
+const DROP_ORDER = ["utm_medium", "utm_campaign", "device", "source", "visitor_id"] as const;
+/** 0010 时代就有的四列，任何情况下都不再裁掉 */
+const CORE_KEYS: ReadonlySet<string> = new Set(["path", "referrer", "utm_source", "created_at"]);
+
+type PVRow = Record<string, string | null>;
+
+function missingColumn(message: string): string | null {
+  const m = MISSING_COL_RE.exec(message);
+  return m?.[1] ?? m?.[2] ?? null;
+}
+
+/**
+ * 一次成功则立即返回；失败时只移除报错点名的那一列再试。
+ * 最坏情况逐列退到核心四列，但绝不会因为「少一个 utm_medium」就把
+ * visitor_id 一起丢掉 —— 这正是上一版 UV 恒等于 PV 的根因。
+ */
+async function insertPageView(
+  db: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  full: PVRow
+): Promise<{ stored: boolean; dropped: string[]; error: string | null }> {
+  const row: PVRow = { ...full };
+  const dropped: string[] = [];
+  let lastError = "";
+
+  for (let i = 0; i <= DROP_ORDER.length; i += 1) {
+    const { error } = await db.from("page_views").insert(row);
+    if (!error) return { stored: true, dropped, error: null };
+
+    lastError = error.message ?? "unknown error";
+    const named = missingColumn(lastError);
+    // 优先精确裁剪报错列；错误信息里没列名时按优先级砍一个
+    const victim =
+      named && named in row && !CORE_KEYS.has(named)
+        ? named
+        : DROP_ORDER.find((k) => k in row) ?? "";
+    if (!victim) break;
+    dropped.push(victim);
+    delete row[victim];
+  }
+  return { stored: false, dropped, error: lastError };
+}
+
 /**
  * 埋点端点。
  * - 未接 Supabase 时返回 ok:true 但不落库，前端无感（本地开发不报错）。
@@ -120,7 +171,9 @@ export async function POST(req: Request) {
     const referrer = clean(d.referrer, 200);
     const utmSource = clean(d.utm_source, 100);
 
-    const full = {
+    // created_at 一律用服务端时钟：前端 ts 会被浏览器时区或手工探针带偏，
+    // 而「今日」是 UTC+8 半开区间，时间来源必须统一可信。
+    const full: PVRow = {
       path: clean(d.path, 300) ?? "/",
       referrer,
       utm_source: utmSource,
@@ -129,33 +182,25 @@ export async function POST(req: Request) {
       visitor_id: clean(d.visitor_id, 64),
       device: clean(d.device, 20),
       source: classify(referrer, utmSource),
-      created_at: d.ts ?? new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
-    // 第一段：全字段
-    const first = await db.from("page_views").insert(full);
-
-    // 第二段：0011 未执行 → 退到 0010 的四列，保证 PV 一定落库
-    if (first.error) {
-      const core = {
-        path: full.path,
-        referrer: full.referrer,
-        utm_source: full.utm_source,
-        created_at: full.created_at,
-      };
-      const retry = await db.from("page_views").insert(core);
-      if (!retry.error) {
-        return NextResponse.json({ ok: true, stored: true, degraded: "core-columns" });
-      }
-      return NextResponse.json({
-        ok: true,
-        stored: false,
-        error: retry.error.message,
-        hint: "page_views 表不存在时请先执行 supabase/migrations/0011_page_views_visitor.sql",
-      });
-    }
-
-    return NextResponse.json({ ok: true, stored: true });
+    const result = await insertPageView(db, full);
+    // 前端没带 ID，或 ID 那一列被裁掉 → 明确报告「这次写入算不出 UV」
+    const uvCapable = !result.dropped.includes("visitor_id") && Boolean(full.visitor_id);
+    return NextResponse.json({
+      ok: true,
+      stored: result.stored,
+      uv_capable: result.stored ? uvCapable : false,
+      dropped_columns: result.dropped,
+      ...(result.dropped.length ? { degraded: "partial-columns" } : {}),
+      ...(result.error
+        ? {
+            error: result.error,
+            hint: "请先执行 supabase/migrations/0012_fix_uv_dedupe.sql 补齐列并刷新 schema",
+          }
+        : {}),
+    });
   }
 
   /* ---------- B. 行为事件 → events ---------- */
