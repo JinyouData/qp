@@ -66,8 +66,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PageViewTracker />
         </Suspense>
         <Nav />
-        {/* 移动端底部固定加微条占位：主内容与页脚之间先留 96px */}
-        <main className="pb-24 lg:pb-0">{children}</main>
+        {/* 底部安全区统一收口在 Footer（pb-[84px]），这里只留 16px 内容间距，
+            避免两处留白叠加把移动端滚动距离白白拉长 80px。 */}
+        <main className="pb-4 lg:pb-0">{children}</main>
         <Footer />
         <FloatingCta />
       </body>

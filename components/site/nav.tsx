@@ -64,33 +64,23 @@ export function Nav() {
         </button>
       </div>
 
-      {/* 移动端菜单 */}
+      {/* 移动端菜单：轻量四链接，不加全宽 CTA（转化入口统一交给底部吸底条） */}
       {open && (
-        <nav className="border-t bg-card px-4 py-4 lg:hidden">
-          <div className="flex flex-col gap-1">
+        <nav className="border-t bg-card px-3 py-2 lg:hidden">
+          <div className="flex flex-col gap-0.5">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium",
+                  "rounded-lg px-3 py-2 text-sm font-medium",
                   pathname === l.href ? "bg-secondary text-primary" : "hover:bg-muted"
                 )}
               >
                 {l.label}
               </Link>
             ))}
-            <div className="mt-3">
-              <WecomCtaButton
-                size="sm"
-                variant="default"
-                label="联系主理人"
-                from="nav-mobile"
-                subject="移动导航"
-                className="w-full"
-              />
-            </div>
           </div>
         </nav>
       )}
