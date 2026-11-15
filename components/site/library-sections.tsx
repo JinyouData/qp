@@ -159,7 +159,7 @@ function CollapsibleLibrary({
             <span className="text-xl font-bold md:text-2xl">{lib.name}</span>
             <span className={`text-sm font-semibold ${theme.accent}`}>{lib.tagline}</span>
             <span className="ml-auto flex shrink-0 items-center gap-2">
-              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-primary">
+              <span className="whitespace-nowrap rounded-full bg-secondary px-3 py-1 text-xs font-bold text-primary">
                 {lib.price}
               </span>
               <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card transition-colors group-hover:border-brand-green/50 group-hover:bg-brand-green-soft">
@@ -175,7 +175,15 @@ function CollapsibleLibrary({
 
         <div id={bodyId} role="region" aria-labelledby={titleId} className="acc-body">
           <div className="acc-inner">
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {/* 知识库 6 项：PC 端 md 起固定 3 列 = 完美 2 行 × 3 列，不留空位；
+                手机端单列纵向。工具库 4 项保持原来的响应式列数。 */}
+            <div
+              className={`mt-5 grid gap-3 ${
+                libKey === "kb"
+                  ? "grid-cols-1 md:grid-cols-3"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              }`}
+            >
               {items.map((p) => (
                 <LibCard key={p.id} product={p} accent={theme.accent} />
               ))}

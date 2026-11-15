@@ -15,7 +15,7 @@ import { getProducts } from "@/lib/data";
 
 export const metadata: Metadata = buildMetadata({
   title: "报告与数据产品",
-  description: "行业报告（品类数据、价格带、竞争格局、趋势预判，¥9.9 体验价）与数据库会员（金游智库·专属查询账号，Client 只读，312 万 SKU 无限次查询，¥999 / 年）。",
+  description: "行业报告（品类数据、价格带、竞争格局、趋势预判，全部免费，加微即得）与数据库会员（金游智库·专属查询账号，Client 只读，312 万 SKU 无限次查询，¥999 / 年）。",
   path: "/reports",
   keywords: [KEYWORDS.data, KEYWORDS.nev, KEYWORDS.compliance, KEYWORDS.oe],
 });
@@ -25,19 +25,19 @@ const REPORTS = [
     name: "《中国汽配电商价格带全景 2026》",
     metric: "覆盖 12 个主流品类 · 4 个平台",
     desc: "每个品类的成交价格带分布、头部集中度、低价区陷阱，附选品价格定位建议。",
-    price: "¥9.9",
+    price: "免费 · 联系即得",
   },
   {
     name: "《跨境汽配（俄罗斯 / 欧美 / 东南亚）机会地图》",
     metric: "3 平台 · 9 个高潜品类",
     desc: "真实成交数据拆毛利结构：汇率、物流、佣金、退货，算清楚到手多少钱。",
-    price: "¥9.9",
+    price: "免费 · 联系即得",
   },
   {
     name: "《修理厂采购渠道现状调研》",
     metric: "217 份有效样本 · 6 省",
     desc: "修理厂从哪进货、为什么换供应商、对账期和适配准确率的真实要求。",
-    price: "¥9.9",
+    price: "免费 · 联系即得",
   },
 ];
 
@@ -96,7 +96,7 @@ export default async function ReportsPage() {
                   <h3 className="text-base font-bold leading-snug">{r.name}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{r.desc}</p>
                   <div className="mt-auto flex items-center justify-between border-t border-dashed pt-3">
-                    <span className="text-lg font-bold text-brand-red">{r.price}</span>
+                    <span className="whitespace-nowrap text-sm font-bold text-brand-red">{r.price}</span>
                     {full && <ProductCta product={full} />}
                   </div>
                 </CardContent>
@@ -106,7 +106,7 @@ export default async function ReportsPage() {
           {brief && (
             <div className="mt-6 flex flex-col items-center gap-2 rounded-xl bg-brand-green-soft p-5 text-center sm:flex-row sm:justify-between sm:text-left">
               <p className="text-sm">
-                <span className="font-bold">不想先花钱？</span>每份报告都有精华摘要版：核心数据 + 趋势判断 + 一页决策建议，免费领。
+                <span className="font-bold">不确定先看哪份？</span>每份报告都有精华摘要版：核心数据 + 趋势判断 + 一页决策建议，免费领。
               </p>
               <Button asChild variant="default" size="sm">
                 <Link href="/contact">

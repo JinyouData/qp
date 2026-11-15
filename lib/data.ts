@@ -1,4 +1,4 @@
-import type { Product, ContentItem, CaseStudy, Partner, Library } from "./types";
+import type { Product, CaseStudy, Partner, Library } from "./types";
 import { fetchTable } from "./supabase";
 
 /* ============================================================
@@ -8,7 +8,7 @@ import { fetchTable } from "./supabase";
    ============================================================ */
 
 export const FALLBACK_PRODUCTS: Product[] = [
-  /* ================= 板块一 · 知识库（免费 / ¥9.9 体验价 · 构建行业认知） ================= */
+  /* ================= 板块一 · 知识库（6 项全部免费 · 加微即得 · 构建行业认知） ================= */
   {
     id: 4, slug: "knowledge-base", name: "避坑指南", icon: "book-open", library: "kb", category: "knowledge",
     positioning: "12,000+ 条踩过的坑，按场景一条条写清楚",
@@ -24,8 +24,8 @@ export const FALLBACK_PRODUCTS: Product[] = [
     problem: "决策缺数据支撑，拍脑袋交学费",
     audience: "需要决策依据的经营者与平台团队",
     deliverable: "完整报告文档 · 数据来源与口径全部注明",
-    price: "¥9.9 · 体验价",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
+    price: "免费 · 联系即得",
+    cta_type: "claim", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
   {
     id: 2, slug: "sop-checklists", name: "合规 SOP 清单", icon: "list-checks", library: "kb", category: "knowledge",
@@ -51,8 +51,8 @@ export const FALLBACK_PRODUCTS: Product[] = [
     problem: "想提效但不知道好用的表格长什么样",
     audience: "有现成业务、想立刻提效的团队",
     deliverable: "选品评分表 / 供应商评估表 / 库存周转表 / 客服话术库",
-    price: "¥9.9 · 体验价",
-    cta_type: "buy", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
+    price: "免费 · 联系即得",
+    cta_type: "claim", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
   },
   {
     id: 6, slug: "case-library", name: "案例库", icon: "folder-open", library: "kb", category: "knowledge",
@@ -60,17 +60,8 @@ export const FALLBACK_PRODUCTS: Product[] = [
     problem: "想知道别人是怎么解决同类问题的",
     audience: "想直接看别人怎么解决的务实派",
     deliverable: "图文案例 · 内部资料库专栏",
-    price: "免费 · 申请解锁",
+    price: "免费 · 联系即得",
     cta_type: "claim", third_party_url: null, third_party_platform: "企业微信", planet_url: null,
-  },
-  {
-    id: 1, slug: "content-ip", name: "内容 IP", icon: "video", library: "kb", category: "knowledge",
-    positioning: "全网同名「汽配知识局」的短视频、图文与直播",
-    problem: "不了解我们，想先通过内容判断专业度",
-    audience: "所有汽配人，尤其是想先看看再决定的人",
-    deliverable: "短视频 / 深度图文 / 月度直播（回放沉淀进知识库）",
-    price: "免费 · 全网公开",
-    cta_type: "claim", third_party_url: null, third_party_platform: null, planet_url: null,
   },
 
   /* ================= 板块二 · 工具库（¥99 – ¥299 · 现成工具，直接落地） ================= */
@@ -152,14 +143,8 @@ export const FALLBACK_PRODUCTS: Product[] = [
   },
 ];
 
-export const FALLBACK_CONTENTS: ContentItem[] = [
-  { id: 1, title: "刹车片选品避坑：这 3 种货打死不能进", type: "短视频", platform: "抖音", link: "#", summary: "选品避坑、货源鉴别。", metric: "42万播放", date: "3 天前" },
-  { id: 2, title: "跨境汽配爆款拆解：利润藏在适配数据里", type: "短视频", platform: "B站", link: "#", summary: "跨境选品逻辑拆解。", metric: "18万播放", date: "1 周前" },
-  { id: 3, title: "电商渠道汽配类目 2026 价格带全景图", type: "图文", platform: "公众号", link: "#", summary: "价格带分析与决策参考。", metric: "1.2万阅读", date: "2 天前" },
-  { id: 4, title: "修理厂供应链怎么理：一场直播讲透", type: "直播回放", platform: "视频号", link: "#", summary: "供应链全流程直播。", metric: "8600 观看", date: "上周" },
-  { id: 5, title: "适配数据踩坑实录：一个 SKU 赔掉 2 万块", type: "图文", platform: "公众号", link: "#", summary: "真实踩坑复盘。", metric: "2.4万阅读", date: "1 周前" },
-  { id: 6, title: "和修理厂老板聊进货：他一年省了 18 万", type: "短视频", platform: "抖音", link: "#", summary: "真实对话访谈。", metric: "65万播放", date: "2 周前" },
-];
+/* 原「内容 IP」短视频 / 图文 / 直播兜底数据已于 2026-11-15 整体下线：
+   全站没有任何页面再消费 contents 表，卡片与数据都不留。 */
 
 export const FALLBACK_CASES: CaseStudy[] = [
   {
@@ -261,7 +246,14 @@ function sanitizeRow<T extends Record<string, unknown>>(row: T): T {
 }
 
 /** 已下线的产品 slug：即使数据库里还有旧记录，也不允许再出现在站点上 */
-const RETIRED_PRODUCT_SLUGS = new Set(["courses", "annual-pass", "corporate-training"]);
+const RETIRED_PRODUCT_SLUGS = new Set([
+  "courses",
+  "annual-pass",
+  "corporate-training",
+  // 2026-11-15 服务目录瘦身：「内容 IP」不直接产生交易，卡片已整体下线。
+  // 即使数据库里还留着旧记录，也不允许它回到官网。
+  "content-ip",
+]);
 
 /**
  * 代码里的产品目录 = 唯一真源（2026-11-14 三库定调，全站封板）。
@@ -323,10 +315,6 @@ export async function getProducts(): Promise<Product[]> {
   return [...FALLBACK_PRODUCTS, ...extras].map(
     (p) => sanitizeRow(p as unknown as Record<string, unknown>) as unknown as Product
   );
-}
-export async function getContents(): Promise<ContentItem[]> {
-  const rows = (await fetchTable<ContentItem>("contents")) ?? FALLBACK_CONTENTS;
-  return rows.map((r) => sanitizeRow(r as unknown as Record<string, unknown>) as unknown as ContentItem);
 }
 export async function getCases(): Promise<CaseStudy[]> {
   const rows = (await fetchTable<CaseStudy>("cases")) ?? FALLBACK_CASES;

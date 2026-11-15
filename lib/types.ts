@@ -19,7 +19,7 @@ export const LIBRARIES: Record<
     name: "知识库",
     en: "KNOWLEDGE",
     tagline: "构建行业认知",
-    price: "免费 / ¥9.9 体验价",
+    price: "全部免费（加微即得）",
     goal: "先把行业看明白",
     note: "避坑指南、行业报告、合规 SOP —— 让你在动手之前就知道哪里会踩坑。",
   },
@@ -74,17 +74,6 @@ export interface Product {
   third_party_platform: string | null;
   /** 历史字段，已废弃（原知识星球邀请链接） */
   planet_url: string | null;
-}
-
-export interface ContentItem {
-  id: number;
-  title: string;
-  type: string; // 短视频 / 图文 / 直播回放
-  platform: string; // 抖音 / 视频号 / B站 / 公众号
-  link: string;
-  summary: string;
-  metric: string; // 播放 / 阅读数据
-  date: string;
 }
 
 export interface CaseMetric {

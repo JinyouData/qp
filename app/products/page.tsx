@@ -16,7 +16,7 @@ export const runtime = "edge";
 export const metadata: Metadata = buildMetadata({
   title: "服务目录",
   description:
-    "智库服务：知识库（免费 / ¥9.9 体验价，构建行业认知）→ 工具库（¥99 – ¥299，现成工具直接落地）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
+    "智库服务：知识库（6 项全部免费，加微即得，构建行业认知）→ 工具库（¥99 – ¥299，现成工具直接落地）→ 数据库（¥999 / 年，金游智库专属查询账号，看透真实利润）。",
   path: "/products",
   keywords: [KEYWORDS.data, KEYWORDS.oe, KEYWORDS.vin, KEYWORDS.knowledge, KEYWORDS.sop],
 });

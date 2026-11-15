@@ -9,7 +9,7 @@ PAGES = {
     "reports": "报告与数据产品",
     "consulting": "咨询与内训",
     "partners": "SaaS与AI合作",
-    "content": "内容IP",
+    "content": "客户成果与数据洞察",
     "cases": "案例",
     "contact": "联系与留资",
     "about": "关于我们",
