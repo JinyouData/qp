@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 // 字体改为自托管：next/font/google 在构建期要访问 fonts.gstatic.com，
 // CI 构建机访问不到会导致 build 失败。详见 app/fonts.css。
 import "./fonts.css";
@@ -7,6 +8,7 @@ import "./globals.css";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { UtmCapture } from "@/components/site/utm-capture";
+import { PageViewTracker } from "@/components/site/page-view-tracker";
 import { FloatingCta } from "@/components/site/floating-cta";
 import { Analytics } from "@/components/site/analytics";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/site/json-ld";
@@ -59,6 +61,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Analytics />
         <UtmCapture />
+        {/* PV 埋点：用 useSearchParams，必须包 Suspense，否则静态预渲染会报错 */}
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <Nav />
         {/* 移动端底部固定加微条占位：主内容与页脚之间先留 96px */}
         <main className="pb-24 lg:pb-0">{children}</main>
