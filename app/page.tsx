@@ -49,6 +49,14 @@ const HERO_OFFER = "免费领取：Top 50 高毛利选品清单（内测版）";
 /* 手机端（<768px）精简文案：一行装得下、绝不折行 */
 const HERO_OFFER_MOBILE = "免费领取 Top 50 清单";
 
+/* 信任标签：手机端（<768px）用三个字的极简词 + 小圆点分隔横排，绝不折行；
+   PC 端继续用原来的完整表述与横排 flex-wrap，口径不变。 */
+const HERO_TRUST = [
+  { mobile: "不卖货", desktop: "不卖货 · 不代运营" },
+  { mobile: "不代收", desktop: "官网不处理支付" },
+  { mobile: "保合规", desktop: "数据合规第一天就有" },
+] as const;
+
 /* ---------- 首屏下方的「三库产品矩阵」轻量导航 ----------
    承接看完数据卡片后的购买意图，把客户直接分流到服务目录的三个板块。
    PC = 3 张并排细长卡；手机 = 1 列 3 行极简卡（同一套 DOM，靠响应式文字切换）。
@@ -140,14 +148,26 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              {/* 信任标签：手机端纵向排列但字号与行距都收小，像一行低调的免责声明；PC 端横向 flex-wrap 原样。 */}
-              <ul className="mt-7 flex flex-col gap-y-2 text-xs text-gray-500 md:mt-6 md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2 md:text-sm md:text-muted-foreground">
-                {["不卖货 · 不代运营", "官网不处理支付", "数据合规第一天就有"].map((t, i) => (
-                  <li key={t} className="flex items-center gap-1.5">
+              {/* 信任标签：手机端一行横排、居中、12px 浅灰，小对勾 + 小圆点分隔，
+                  用 flex-nowrap + whitespace-nowrap 保证绝不折行；PC 端还原横向 flex-wrap 与完整表述。 */}
+              <ul className="mt-6 flex flex-row flex-nowrap items-center justify-center gap-x-2 text-xs text-gray-500 md:mt-6 md:flex-wrap md:justify-start md:gap-x-5 md:gap-y-2 md:text-sm md:text-muted-foreground">
+                {HERO_TRUST.map((t, i) => (
+                  <li
+                    key={t.mobile}
+                    className="flex shrink-0 items-center gap-1 whitespace-nowrap md:gap-1.5"
+                  >
+                    {i > 0 && (
+                      <span aria-hidden className="mr-0.5 select-none text-gray-300 md:hidden">
+                        ·
+                      </span>
+                    )}
                     <CheckCircle2
-                      className={`h-4 w-4 ${i % 2 === 0 ? "text-brand-green" : "text-brand-orange"}`}
+                      className={`h-3 w-3 shrink-0 md:h-4 md:w-4 ${
+                        i % 2 === 0 ? "text-brand-green" : "text-brand-orange"
+                      }`}
                     />
-                    {t}
+                    <span className="md:hidden">{t.mobile}</span>
+                    <span className="hidden md:inline">{t.desktop}</span>
                   </li>
                 ))}
               </ul>
