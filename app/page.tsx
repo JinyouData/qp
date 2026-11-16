@@ -97,33 +97,31 @@ export default async function HomePage() {
     <>
       {/* ========== Hero：唯一主目标 ========== */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#FFF7EE] via-[#FCFAF6] to-background">
-        <div className="container-site py-16 md:py-20">
-          <div className="grid items-center gap-12 md:grid-cols-[1.15fr_1fr] md:gap-10">
+        <div className="container-site py-14 md:py-20">
+          <div className="grid items-center gap-10 md:grid-cols-[1.15fr_1fr]">
             <div>
-              <Badge variant="accent" className="mb-6 md:mb-4">
+              <Badge variant="accent" className="mb-5 md:mb-4">
                 JINYOU DATA · 汽配行业数据智库
               </Badge>
 
-              {/* 主标题：手机端收敛字号、加字距、去掉粗橙下划线，只靠「深灰 + 品牌橙 + 字重」形成对比；
-                  md: 起完全还原 PC 原有表现（含下划线）。 */}
+              {/* 主标题：手机端 28px + 字距，只靠「深灰 + 品牌砖红 + 字重」形成对比；
+                  橙色下划线已彻底移除（PC 端也不再出现）。PC 端字号/字距/亮橙由 md: 还原。 */}
               <h1 className="text-[28px] font-bold leading-[1.35] tracking-[0.03em] text-foreground md:text-5xl md:leading-[1.25] md:tracking-normal">
                 用数据洞察，
-                <span className="relative ml-[0.12em] inline-block font-extrabold text-brand-orange md:font-bold">
+                <span className="ml-[0.12em] inline-block font-extrabold text-brand-red md:font-bold md:text-brand-orange">
                   化繁为金
-                  <span className="absolute -bottom-1 left-0 hidden h-2 w-full rounded-full bg-brand-orange/30 md:block" />
                 </span>
               </h1>
 
-              {/* 副标题：手机端缩小字号、加大行高、减淡颜色，并在「拆解」后强制断成两段留白；
-                  md: 起两段重新 inline 拼回原来那一整句，PC 文案一字不变。 */}
-              <p className="mt-7 max-w-xl text-sm leading-loose text-gray-600 md:mt-5 md:text-lg md:leading-relaxed md:text-muted-foreground">
-                <span className="block md:inline">基于 312 万条真实汽配交易大盘与 900+ 源头供应商，为你拆解</span>
-                <span className="mt-2 block md:mt-0 md:inline"> 40%-50% 黄金毛利区间，只给能落地的选品依据与合规 SOP。</span>
+              {/* 副标题：手机端 14px / leading-relaxed / 浅灰，单段连续、不插空行，与主标题只留 16px 保持紧凑；
+                  md: 起还原 PC 的 18px 与暖灰，文案一字不差。 */}
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-500 md:mt-5 md:text-lg md:text-muted-foreground">
+                基于 312 万条真实汽配交易大盘与 900+ 源头供应商，为你拆解 40%-50% 黄金毛利区间，只给能落地的选品依据与合规 SOP。
               </p>
 
-              {/* 首屏唯一按钮：手机端短文案一行不折、小圆角 rounded-xl、靠 py 撑开点击区；
+              {/* 首屏唯一按钮：手机端短文案一行不折、rounded-xl 小圆角、py-3.5 收高度，像工具而非大促按钮；
                   PC 端仍是原来的全圆长按钮。点击只弹企微名片，不跳页、不填表。 */}
-              <div className="mt-9 md:mt-8">
+              <div className="mt-8">
                 <WecomCtaButton
                   size="lg"
                   variant="orange"
@@ -135,16 +133,15 @@ export default async function HomePage() {
                   }
                   from="home-hero"
                   subject={HERO_OFFER}
-                  className="h-auto w-full rounded-xl py-4 text-center text-base font-bold leading-snug shadow-warm-lg md:h-16 md:w-auto md:whitespace-normal md:rounded-full md:px-10 md:py-0 md:text-xl"
+                  className="h-auto w-full rounded-xl py-3.5 text-center text-base font-bold leading-snug shadow-warm-lg md:h-16 md:w-auto md:whitespace-normal md:rounded-full md:px-10 md:py-0 md:text-xl"
                 />
-                <p className="mt-4 text-xs text-gray-500 md:mt-3 md:text-muted-foreground">
+                <p className="mt-3.5 text-xs text-gray-400 md:mt-3 md:text-muted-foreground">
                   点击扫码，直接获取内测资料
                 </p>
               </div>
 
-              {/* 信任徽章：手机端纵向 3 行、条目间距加大、文字减淡不抢主按钮；
-                  PC 端恢复横向 flex-wrap 原样式。 */}
-              <ul className="mt-9 flex flex-col gap-y-3 text-[13px] text-gray-500 md:mt-6 md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2 md:text-sm md:text-muted-foreground">
+              {/* 信任标签：手机端纵向排列但字号与行距都收小，像一行低调的免责声明；PC 端横向 flex-wrap 原样。 */}
+              <ul className="mt-7 flex flex-col gap-y-2 text-xs text-gray-500 md:mt-6 md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2 md:text-sm md:text-muted-foreground">
                 {["不卖货 · 不代运营", "官网不处理支付", "数据合规第一天就有"].map((t, i) => (
                   <li key={t} className="flex items-center gap-1.5">
                     <CheckCircle2
