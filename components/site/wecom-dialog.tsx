@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { BadgeCheck, MessageCircle, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,8 @@ export function WecomCtaButton({
   iconOnly = false,
   ariaLabel,
 }: {
-  label?: string;
+  /** 允许传 JSX（如移动端/PC 双文案 span）；string 依旧完全兼容全站既有调用 */
+  label?: ReactNode;
   size?: "sm" | "default" | "lg";
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "orange";
   from?: string;
@@ -54,7 +55,7 @@ export function WecomCtaButton({
         size={size}
         variant={variant}
         className={className}
-        aria-label={iconOnly ? (ariaLabel ?? label ?? WECOM.ctaLabel) : undefined}
+        aria-label={iconOnly ? (ariaLabel ?? (typeof label === 'string' ? label : undefined) ?? WECOM.ctaLabel) : undefined}
         onClick={() => setOpen(true)}
       >
         {iconOnly ? <MessageCircle className="h-5 w-5" /> : label ?? WECOM.ctaLabel}
