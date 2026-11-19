@@ -56,7 +56,7 @@ export function Nav() {
 
         {/* 移动端按钮 */}
         <button
-          className="rounded-lg p-2 hover:bg-muted lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-muted lg:hidden"
           onClick={() => setOpen(!open)}
           aria-label="菜单"
         >
@@ -74,7 +74,7 @@ export function Nav() {
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium",
+                  "flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium",
                   pathname === l.href ? "bg-secondary text-primary" : "hover:bg-muted"
                 )}
               >

@@ -34,7 +34,8 @@ export function FooterAccordion({ groups }: { groups: MobileFooterGroup[] }) {
           value={group.id}
           className="rounded-lg border border-brand-green/10 bg-card/60 px-3 shadow-none"
         >
-          <AccordionTrigger className="py-2.5 text-[13px] font-semibold hover:text-brand-green">
+          {/* 触控区至少 44px：视觉上仍是紧凑的一行，但点击高度撑到 44px */}
+          <AccordionTrigger className="min-h-11 py-2.5 text-[13px] font-semibold hover:text-brand-green">
             {group.title}
           </AccordionTrigger>
           <AccordionContent className="pb-2.5">
@@ -43,7 +44,7 @@ export function FooterAccordion({ groups }: { groups: MobileFooterGroup[] }) {
                 <li key={l.href + l.label}>
                   <Link
                     href={l.href}
-                    className="block py-1.5 text-[13px] leading-tight transition-colors hover:text-brand-orange-ink"
+                    className="flex min-h-11 items-center py-2 text-[13px] leading-tight transition-colors hover:text-brand-orange-ink"
                   >
                     {l.label}
                   </Link>

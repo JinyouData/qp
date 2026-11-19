@@ -62,11 +62,8 @@ export function websiteSchema() {
     name: SITE_NAME,
     url: SITE_URL,
     inLanguage: "zh-CN",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${SITE_URL}/insights?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
+    // 站点没有真实站内搜索框，不能声明 SearchAction：
+    // 那是「站内搜索结果页」的结构化标记，虚假声明会被判为垃圾结构化数据。
   };
 }
 

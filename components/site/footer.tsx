@@ -112,7 +112,7 @@ export function Footer() {
 
         {/* ========== 移动端：极简品牌行 + 手风琴导航 ========== */}
         <div className="md:hidden">
-          <Link href="/" className="inline-flex items-center">
+          <Link href="/" className="inline-flex min-h-11 items-center">
             <BrandLogo />
           </Link>
           <p className="mt-2.5 text-xs leading-relaxed">
@@ -144,14 +144,14 @@ export function Footer() {
               <span className="text-gray-300">|</span>
               <Link
                 href="/privacy"
-                className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
+                className="inline-flex min-h-11 items-center underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
               >
                 隐私政策
               </Link>
               <span className="text-gray-300">·</span>
               <Link
                 href="/terms"
-                className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
+                className="inline-flex min-h-11 items-center underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
               >
                 服务条款
               </Link>

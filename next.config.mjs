@@ -4,10 +4,10 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
 
-  // /cases 已彻底下线，永久重定向到 /content。
+  // 301 跳转（www → 主域名、已下线路由）与安全响应头统一在 middleware.ts 实现。
   // 说明：Next.js 的 redirects 只支持 307/308（permanent: true 实际输出 308），
-  // 无法输出 301；Cloudflare Pages 在 _worker.js 高级模式下又会忽略 public/_redirects。
-  // 因此 301 由 middleware.ts 显式实现（matcher 仅匹配 /cases 及其子路径）。
+  // 无法输出 301；Cloudflare Pages 在 _worker.js 高级模式下又会忽略 public/_redirects，
+  // next.config 的 headers 也不保证被应用。middleware 在 Pages 上就是边缘 Worker。
 };
 
 // Cloudflare Pages：仅在本地 `next dev` 时模拟 Pages 运行时（读取 wrangler.toml 的绑定）。
