@@ -58,6 +58,19 @@ export async function GET(request: Request) {
           : aiProvider === "custom"
             ? process.env.AI_MODEL ?? "gpt-4o-mini"
             : process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+      // 部署新鲜度标记：用于确认线上跑的是不是本次构建。
+      diagVersion: "keyprobe-20261120",
+      // 只回布尔值，定位「Key 到底配在哪个变量名」，绝不回传任何值。
+      // 排查用：Cloudflare Pages 环境变量若写到 Preview / 拼错名字，这里一眼可见。
+      envPresence: {
+        DEEPSEEK_API_KEY: Boolean(process.env.DEEPSEEK_API_KEY),
+        AI_CHAT_API_KEY: Boolean(process.env.AI_CHAT_API_KEY),
+        MOONSHOT_API_KEY: Boolean(process.env.MOONSHOT_API_KEY),
+        AI_API_KEY: Boolean(process.env.AI_API_KEY),
+        AI_CHAT_PROVIDER: Boolean(process.env.AI_CHAT_PROVIDER),
+        ADMIN_TOKEN: Boolean(process.env.ADMIN_TOKEN),
+        SUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      },
     },
     projectUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
       ? String(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(
