@@ -35,10 +35,30 @@ export async function GET(request: Request) {
   }
 
   const configured = isSupabaseConfigured();
+  // AI 上游配置自检：只回布尔值与打码前缀，绝不回传完整 Key。
+  // 用途：区分「没配 Key（mock）」与「Key 配了但上游报错（fallback）」。
+  const aiProvider = (process.env.AI_CHAT_PROVIDER ?? "deepseek").toLowerCase();
+  const aiKey =
+    aiProvider === "moonshot"
+      ? process.env.MOONSHOT_API_KEY ?? process.env.AI_CHAT_API_KEY ?? ""
+      : aiProvider === "custom"
+        ? process.env.AI_CHAT_API_KEY ?? process.env.AI_API_KEY ?? ""
+        : process.env.DEEPSEEK_API_KEY ?? process.env.AI_CHAT_API_KEY ?? "";
   const result: Record<string, unknown> = {
     ok: false,
     mode: configured ? "supabase" : "demo",
     supabaseConfigured: configured,
+    ai: {
+      provider: aiProvider,
+      keyConfigured: Boolean(aiKey),
+      keyPrefix: aiKey ? `${aiKey.slice(0, 9)}****` : null,
+      model:
+        aiProvider === "moonshot"
+          ? process.env.MOONSHOT_MODEL ?? "moonshot-v1-8k"
+          : aiProvider === "custom"
+            ? process.env.AI_MODEL ?? "gpt-4o-mini"
+            : process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+    },
     projectUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
       ? String(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(
           /^https:\/\/(.{4}).*(\.supabase\.co)$/,

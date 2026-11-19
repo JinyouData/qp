@@ -228,7 +228,7 @@ export function AiAssistantChat({ tool = "profit" }: { tool?: ToolType }) {
             <span className="text-[10px] text-muted-foreground">
               {lastMode === "live"
                 ? "已接入大模型 · 真实回复"
-                : "本地演示模式 · 结论按内置规则计算"}
+                : "规则引擎 · 结论按内置规则计算"}
             </span>
           )}
         </div>
@@ -269,7 +269,7 @@ export function AiAssistantChat({ tool = "profit" }: { tool?: ToolType }) {
               {m.role === "assistant" && cfg.showCalc && m.calc && <CalcTable calc={m.calc} />}
               {m.role === "assistant" && m.mode && m.mode !== "live" && (
                 <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-                  本地演示模式：未配置大模型 API Key 或上游暂不可用；上方结论按内置规则计算，不受影响。
+                  当前未连接大模型：上游密钥未配置或暂不可用，结论由内置规则计算；测算与限流不受影响。
                 </p>
               )}
             </div>

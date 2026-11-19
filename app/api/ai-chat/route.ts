@@ -109,6 +109,8 @@ export async function POST(req: Request) {
 
   let reply = "";
   let mode: "live" | "mock" | "fallback" = "mock";
+  let upstreamStatus: number | null = null;
+  let upstreamError: string | null = null;
 
   if (cfg.key) {
     try {
@@ -138,7 +140,13 @@ export async function POST(req: Request) {
         clearTimeout(timer);
       }
 
-      if (!res.ok) throw new Error(`upstream ${res.status}`);
+      if (!res.ok) {
+        // 保留上游真实错误体（鉴权失败 / 余额不足 / 限流都会在这里显形），
+        // 只截前 500 字符，且永远不会把 Authorization 头写进日志。
+        upstreamStatus = res.status;
+        upstreamError = (await res.text()).slice(0, 500);
+        throw new Error(`upstream ${res.status}: ${upstreamError}`);
+      }
       const data = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
       };
@@ -147,8 +155,17 @@ export async function POST(req: Request) {
       reply = text;
       mode = "live";
     } catch (err) {
-      // 上游超时/欠费/限流都不让体验中断，降级为同一口径的确定性回复
-      console.error("[ai-chat] 上游失败，降级演示回复：", err);
+      // 上游超时/欠费/限流都不让体验中断，降级为同一口径的确定性回复；
+      // 但必须把真实原因（provider/model/status/错误体）打出来，禁止静默吞错。
+      // Key 只打前缀，绝不把完整密钥写进日志。
+      console.error("[ai-chat] 上游失败，降级演示回复：", {
+        provider: cfg.name,
+        model: cfg.model,
+        url: cfg.url,
+        keyPrefix: cfg.key ? `${cfg.key.slice(0, 9)}****` : null,
+        status: upstreamStatus,
+        upstreamError: upstreamError ?? (err instanceof Error ? err.message : String(err)),
+      });
       reply = demoReply(tool, message, calc ?? undefined, input ?? undefined);
       mode = "fallback";
     }
@@ -166,6 +183,13 @@ export async function POST(req: Request) {
       reply,
       mode,
       provider: cfg.name,
+      // 诊断字段：不泄露 Key，只暴露是否配置与上游真实报错，便于一眼分辨
+      // mock（没配 Key）/ fallback（Key 配了但上游失败）/ live（真模型）
+      keyConfigured: Boolean(cfg.key),
+      degradedReason:
+        mode === "mock" ? "no_api_key" : mode === "fallback" ? "upstream_error" : null,
+      upstreamStatus,
+      upstreamError: upstreamError ? upstreamError.slice(0, 240) : null,
       tool_type: tool,
       calc: isProfit ? calc : null,
       remaining: verdict.remaining,
