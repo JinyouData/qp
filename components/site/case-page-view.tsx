@@ -1,5 +1,7 @@
 import { CaseLibrary } from "@/components/site/case-library";
 import { CaseMetrics, TestimonialsStrip } from "@/components/site/case-results-strip";
+import { InsightsGrid } from "@/components/site/insights-grid";
+import { InsightsTabs } from "@/components/site/insights-tabs";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { PageHero } from "@/components/site/page-hero";
 import {
@@ -30,10 +32,10 @@ export function CasePageView({ page }: { page: number }) {
 
   const breadcrumb =
     current === 1
-      ? [{ name: "首页", url: "/" }, { name: "案例库", url: "/cases" }]
+      ? [{ name: "首页", url: "/" }, { name: "汽配案例库", url: "/cases" }]
       : [
           { name: "首页", url: "/" },
-          { name: "案例库", url: "/cases" },
+          { name: "汽配案例库", url: "/cases" },
           { name: `第 ${current} 页`, url: `/cases/page/${current}` },
         ];
 
@@ -42,8 +44,8 @@ export function CasePageView({ page }: { page: number }) {
       <JsonLd data={breadcrumbSchema(breadcrumb)} />
 
       <PageHero
-        tag="CLIENT RESULTS · CASE LIBRARY"
-        title="客户成果与案例库"
+        tag="CASE LIBRARY"
+        title="汽配案例库"
         desc="不是理论，是已经跑通的选品与降退货逻辑。按标签筛选已交付场景，每篇都写明客户痛点、数据方案与可查证的量化结果。"
       >
         <CaseMetrics />
@@ -51,13 +53,21 @@ export function CasePageView({ page }: { page: number }) {
 
       <TestimonialsStrip />
 
-      <CaseLibrary
-        pageCases={pageCases}
-        allCases={allCases}
-        tags={tags}
-        currentPage={current}
-        totalPages={totalPages}
-        pageBase="/cases/page/"
+      <InsightsTabs
+        defaultTab="cases"
+        casesLabel="客户案例库"
+        articlesLabel="行业深度观察"
+        cases={
+          <CaseLibrary
+            pageCases={pageCases}
+            allCases={allCases}
+            tags={tags}
+            currentPage={current}
+            totalPages={totalPages}
+            pageBase="/cases/page/"
+          />
+        }
+        articles={<InsightsGrid />}
       />
     </>
   );

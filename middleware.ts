@@ -20,6 +20,8 @@ const CANONICAL_HOST = "jinyoudata.com";
 /**
  * 已彻底下线 / 已改名的路由：
  * - /content                  已合并进 /cases（指标 + 证言 + 案例库），301 跳转
+ * - /insights                 列表页已并入 /cases 顶部「行业深度观察」Tab，301 跳转；
+ *                             /insights/[slug] 文章详情保留
  * - /cases                    案例库列表页（标签筛选），与 /cases/[slug] 详情页一并放行
  * - /admin                    线索看板随全站表单下线一并关闭（表单已无数据来源，且含输入框）
  * - /courses                  培训课程体系已砍掉，改为「数据订阅与会员版」
@@ -96,6 +98,14 @@ export function middleware(request: NextRequest) {
 
   // 2) 已下线 / 改名路由 → 新地址，301，保留查询串
   const { pathname } = request.nextUrl;
+
+  // /insights 列表页已并入 /cases 顶部「行业深度观察」Tab；
+  // /insights/[slug] 文章详情仍需保留（Tab 内文章链接指向它），故只精确匹配列表页。
+  if (pathname === "/insights") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/cases";
+    return withSecurityHeaders(NextResponse.redirect(target, 301));
+  }
 
   // /cases 已升级为按标签聚合的案例库列表页，/cases/[slug] 为案例详情页，均正常放行。
 

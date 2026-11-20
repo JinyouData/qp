@@ -10,14 +10,14 @@ import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "页面不存在 · 404",
-  description: "这个地址没有内容。回到首页，或从服务目录、数据洞察里重新找你要的资料。",
+  description: "这个地址没有内容。回到首页，或从服务目录、汽配案例库里重新找你要的资料。",
   robots: { index: false, follow: true },
 };
 
 const LINKS = [
-  { href: "/", label: "首页", desc: "从数据洞察开始" },
+  { href: "/", label: "首页", desc: "从汽配案例库开始" },
   { href: "/products", label: "服务目录", desc: "知识库 / 工具库 / 数据库" },
-  { href: "/insights", label: "智库洞察", desc: "看案例与方法" },
+  { href: "/cases", label: "汽配案例库", desc: "看案例与方法" },
   { href: "/about", label: "关于我们", desc: "我们做什么、不做什么" },
 ];
 

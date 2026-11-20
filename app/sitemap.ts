@@ -70,8 +70,11 @@ function discoverRoutes(dir = APP_DIR, segments: string[] = []): DiscoveredRoute
 function allIndexableRoutes(): string[] {
   const urls = new Set<string>();
 
+  // 已 301 到 /cases 的旧入口不进 sitemap（避免把权重导向跳转页）
+  const REDIRECTED_TO_CASES = new Set<string>(["/content", "/insights"]);
+
   for (const { route, noindex } of discoverRoutes()) {
-    if (noindex) continue;
+    if (noindex || REDIRECTED_TO_CASES.has(route)) continue;
     if (!DYNAMIC_SEGMENT.test(route)) {
       urls.add(route);
       continue;

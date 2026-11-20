@@ -58,7 +58,7 @@ export default function InsightDetailPage({ params }: { params: { slug: string }
           }),
           breadcrumbSchema([
             { name: "首页", url: "/" },
-            { name: "智库洞察", url: "/insights" },
+            { name: "汽配案例库", url: "/cases" },
             { name: meta.title, url: `/insights/${meta.slug}` },
           ]),
         ]}
@@ -69,10 +69,10 @@ export default function InsightDetailPage({ params }: { params: { slug: string }
         <header className="border-b bg-brand-cream">
           <div className="container-site max-w-3xl pb-16 pt-10 md:pb-24 md:pt-14">
             <Link
-              href="/insights"
+              href="/cases"
               className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
             >
-              <ArrowLeft className="h-4 w-4" /> 返回洞察列表
+              <ArrowLeft className="h-4 w-4" /> 返回汽配案例库
             </Link>
 
             <div className="mb-3 flex flex-wrap gap-1.5">

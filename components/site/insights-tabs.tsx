@@ -14,11 +14,17 @@ import { cn } from "@/lib/utils";
 export function InsightsTabs({
   cases,
   articles,
+  defaultTab = "cases",
+  casesLabel = "客户案例库",
+  articlesLabel = "行业深度观察",
 }: {
   cases: ReactNode;
   articles: ReactNode;
+  defaultTab?: "cases" | "articles";
+  casesLabel?: string;
+  articlesLabel?: string;
 }) {
-  const [tab, setTab] = useState<"cases" | "articles">("articles");
+  const [tab, setTab] = useState<"cases" | "articles">(defaultTab);
 
   return (
     <>
@@ -27,8 +33,8 @@ export function InsightsTabs({
           <div className="flex gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {(
               [
-                ["cases", "客户案例库"],
-                ["articles", "行业深度观察"],
+                ["cases", casesLabel],
+                ["articles", articlesLabel],
               ] as const
             ).map(([key, label]) => (
               <button
