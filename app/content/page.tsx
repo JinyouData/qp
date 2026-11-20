@@ -83,7 +83,7 @@ export default function ContentPage() {
         <div className="container-site">
           <SectionHeading
             tag="已交付案例"
-            title="三个已经跑通的场景"
+            title={`${CASE_STUDIES.length} 个已经跑通的场景`}
             desc="客户身份、遇到的问题、调用了金游数据智库的哪部分数据、最后落到什么数字，都在下面。"
           />
           <div className="grid gap-5 lg:grid-cols-3">

@@ -5,9 +5,9 @@ import { ArrowLeft, ArrowRight, CalendarDays, Quote } from "lucide-react";
 
 import { buildMetadata } from "@/lib/seo";
 import {
-  CASE_STUDIES,
   getAllCaseStudySlugs,
   getCaseStudy,
+  getRelatedCases,
   type CaseStudyEntry,
 } from "@/lib/case-studies";
 import {
@@ -69,7 +69,16 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
   const found = getCaseStudy(params.slug);
   if (!found) notFound();
 
-  const others = CASE_STUDIES.filter((c) => c.slug !== found.slug);
+  // 相关推荐：按相同标签匹配，重合度高的优先；无同标签案例时用其他案例兜底
+  const relatedFromTags = getRelatedCases(found.slug, 3);
+  const related =
+    relatedFromTags.length > 0
+      ? relatedFromTags
+      : getAllCaseStudySlugs()
+          .filter((s) => s !== found.slug)
+          .slice(0, 3)
+          .map((s) => getCaseStudy(s))
+          .filter((c): c is CaseStudyEntry => Boolean(c));
 
   return (
     <>
@@ -202,18 +211,25 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
             />
           </div>
 
-          {/* 内链：其他案例词条，帮助搜索引擎发现全部详情页 */}
-          {others.length > 0 && (
+          {/* 相关推荐：按相同标签匹配，帮助搜索引擎发现更多详情页 */}
+          {related.length > 0 && (
             <div className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold">其他案例词条</h2>
+              <h2 className="mb-3 text-sm font-semibold">相关推荐</h2>
               <div className="grid gap-2 sm:grid-cols-2">
-                {others.map((c) => (
+                {related.map((c) => (
                   <Link
                     key={c.slug}
                     href={`/cases/${c.slug}`}
                     className="group flex items-center justify-between gap-3 rounded-xl border p-4 text-sm transition-shadow hover:shadow-warm-md"
                   >
-                    <span className="leading-snug group-hover:text-primary">{c.title}</span>
+                    <span className="min-w-0">
+                      <span className="block leading-snug group-hover:text-primary">
+                        {c.title}
+                      </span>
+                      <span className="mt-1 block truncate text-[11px] text-muted-foreground">
+                        {c.tags.slice(0, 3).map((t) => `#${t}`).join("  ")}
+                      </span>
+                    </span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </Link>
                 ))}
