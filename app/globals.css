@@ -286,3 +286,31 @@
     transition: none;
   }
 }
+
+/* ===== 案例库移动端渐进式加载：卡片 DOM 始终存在，仅 CSS 折叠 ===== */
+.case-extra-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 340ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 220ms ease;
+}
+.case-extra-wrap > .case-extra-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.case-extra-wrap[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+@media (min-width: 768px) {
+  .case-extra-wrap,
+  .case-extra-wrap > .case-extra-inner {
+    display: contents;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-extra-wrap {
+    transition: none;
+  }
+}

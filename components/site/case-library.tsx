@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,60 @@ import type { CaseCardData } from "@/lib/case-studies";
    - 分页由 Server Component 静态预生成（/cases、/cases/page/2…），
      每页独立 HTML，爬虫可抓取；本组件只负责筛选与展示，不碰 useSearchParams
    ============================================================ */
+
+/** 单个案例卡片：从主组件抽出，供折叠区与常规区复用，保证 DOM 结构一致 */
+function CaseCard({ c }: { c: CaseCardData }) {
+  return (
+    <Link
+      href={`/cases/${c.slug}`}
+      className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50"
+      aria-label={`阅读案例：${c.title}`}
+    >
+      <Card className="card-hover flex h-full border-brand-orange/10 group-hover:border-brand-green/40">
+        <CardContent className="flex h-full flex-col p-5">
+          {/* 1) 标签 */}
+          <div className="flex h-7 flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-bold tracking-[0.14em] text-brand-orange-ink">
+              {c.no}
+            </span>
+            {c.tags.slice(0, 2).map((t) => (
+              <Badge key={t} variant="secondary" className="px-2 py-0.5 text-[11px]">
+                {t}
+              </Badge>
+            ))}
+          </div>
+
+          {/* 2) 标题：固定两行 */}
+          <h3 className="mt-2 line-clamp-2 min-h-[3rem] text-base font-bold leading-snug group-hover:text-primary">
+            {c.title}
+          </h3>
+
+          {/* 3) 一句话摘要：固定两行 */}
+          <p className="mt-1 line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-muted-foreground">
+            {c.summary}
+          </p>
+
+          {/* 4) 最多两个核心结果 */}
+          <div className="mt-3 flex min-h-[3.25rem] items-start gap-6 border-t pt-3">
+            {c.results.map((r) => (
+              <div key={r.label}>
+                <div className="text-xl font-bold leading-none text-brand-green">
+                  {r.value}
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">{r.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 统一底部入口 */}
+          <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-brand-green">
+            阅读完整案例 <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export function CaseLibrary({
   /** 当前服务端页的案例（用于无筛选时的默认展示，保证 SSR 与爬虫可见） */
@@ -36,6 +90,8 @@ export function CaseLibrary({
   pageBase: string;
 }) {
   const [active, setActive] = useState("");
+  /** 移动端折叠状态：仅控制 CSS 展示，卡片 DOM 始终存在（SEO 友好） */
+  const [expanded, setExpanded] = useState(false);
   const pageHref = (p: number) => (p === 1 ? "/cases" : `${pageBase}${p}`);
 
   // 标签筛选仅作用于已加载案例；从 URL 读取初始标签，不触发 CSR bailout
@@ -124,57 +180,40 @@ export function CaseLibrary({
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {shown.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/cases/${c.slug}`}
-                className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50"
-                aria-label={`阅读案例：${c.title}`}
-              >
-                <Card className="card-hover flex h-full border-brand-orange/10 group-hover:border-brand-green/40">
-                  <CardContent className="flex h-full flex-col p-5">
-                    {/* 1) 标签 */}
-                    <div className="flex h-7 flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] font-bold tracking-[0.14em] text-brand-orange-ink">
-                        {c.no}
-                      </span>
-                      {c.tags.slice(0, 2).map((t) => (
-                        <Badge key={t} variant="secondary" className="px-2 py-0.5 text-[11px]">
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* 2) 标题：固定两行 */}
-                    <h3 className="mt-2 line-clamp-2 min-h-[3rem] text-base font-bold leading-snug group-hover:text-primary">
-                      {c.title}
-                    </h3>
-
-                    {/* 3) 一句话摘要：固定两行 */}
-                    <p className="mt-1 line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-muted-foreground">
-                      {c.summary}
-                    </p>
-
-                    {/* 4) 最多两个核心结果 */}
-                    <div className="mt-3 flex min-h-[3.25rem] items-start gap-6 border-t pt-3">
-                      {c.results.map((r) => (
-                        <div key={r.label}>
-                          <div className="text-xl font-bold leading-none text-brand-green">
-                            {r.value}
-                          </div>
-                          <div className="mt-1 text-[11px] text-muted-foreground">{r.label}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* 统一底部入口 */}
-                    <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-brand-green">
-                      阅读完整案例 <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
+            {shown.slice(0, 3).map((c) => (
+              <CaseCard key={c.slug} c={c} />
             ))}
+
+            {shown.length > 3 && (
+              <div
+                className="case-extra-wrap md:contents"
+                data-open={expanded ? "true" : "false"}
+              >
+                <div className="case-extra-inner flex flex-col gap-4 md:contents">
+                  {shown.slice(3).map((c) => (
+                    <CaseCard key={c.slug} c={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 移动端展开/收起：仅折叠 CSS 展示，卡片 DOM 始终在 HTML 中 */}
+        {shown.length > 3 && (
+          <div className="mt-4 flex justify-center md:hidden">
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/50 px-6 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green-soft"
+            >
+              {expanded ? (
+                <>收起案例 <ArrowUp className="h-4 w-4" /></>
+              ) : (
+                <>展开更多案例 <ArrowDown className="h-4 w-4" /></>
+              )}
+            </button>
           </div>
         )}
 
