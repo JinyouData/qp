@@ -6,9 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getAllInsights, estimateReadingTime } from "@/lib/insights";
 
 /* ============================================================
-   行业深度观察 · 文章网格（只读展示版）
+   智库深度观察 · 文章网格（只读展示版）
 
-   供「汽配案例库」页的第二个 Tab 内嵌。文章详情仍由
+   供「智库观察」页的第二个 Tab 内嵌。文章详情仍由
    /insights/[slug] 渲染，但列表与内容都被搜索引擎在 /cases 抓到。
    ============================================================ */
 
@@ -19,7 +19,7 @@ export function InsightsGrid() {
     <section className="section-pad">
       <div className="container-site">
         <div className="mb-6">
-          <h2 className="text-xl font-bold md:text-2xl">行业深度观察</h2>
+          <h2 className="text-xl font-bold md:text-2xl">智库深度观察</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             共 {items.length} 篇 · OE 号匹配、VIN 解析、新能源汽配、出海合规的一线方法
           </p>

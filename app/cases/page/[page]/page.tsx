@@ -32,7 +32,7 @@ export function generateMetadata({
 }): Metadata {
   const page = Number(params.page) || 2;
   return buildMetadata({
-    title: `汽配案例库 · 第 ${page} 页`,
+    title: `智库观察 · 第 ${page} 页`,
     description: `汽配诊断案例库第 ${page} 页，按标签筛选车灯、脚垫、刹车片、改装件、库存周转等真实场景，含可查证的量化结果。`,
     // 第 1 页与 /cases 内容相同，canonical 指回主列表页，避免重复收录
     path: page === 1 ? "/cases" : `/cases/page/${page}`,

@@ -366,7 +366,7 @@ export default async function HomePage() {
               href="/cases"
               className="inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/60 px-6 text-sm font-semibold text-brand-green hover:bg-brand-green-soft"
             >
-              查看汽配案例库 <ArrowRight className="h-4 w-4" />
+              查看智库观察 <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

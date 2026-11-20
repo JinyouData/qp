@@ -13,10 +13,10 @@ import { InsightsTabs } from "@/components/site/insights-tabs";
 import { CaseGridSimple } from "@/components/site/case-grid-simple";
 
 export const metadata: Metadata = buildMetadata({
-  title: "智库洞察：客户案例库与行业深度观察",
+  title: "智库观察：真实客户案例与行业深度洞察",
   description:
-    "金游数据智库内容中心：客户案例库的真实诊断结果，以及 OE 号匹配、VIN 解析、新能源汽配、出海数据合规等一线深度观察。",
-  path: "/insights",
+    "金游数据智库统一内容入口：客户案例库的真实诊断结果，以及 OE 号匹配、VIN 解析、新能源汽配、出海数据合规等一线深度观察。本页已合并至 /cases。",
+  path: "/cases",
   keywords: [KEYWORDS.data, KEYWORDS.oe, KEYWORDS.vin, KEYWORDS.nev, KEYWORDS.compliance, KEYWORDS.ai],
 });
 

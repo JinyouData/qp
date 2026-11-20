@@ -16,7 +16,7 @@ export function InsightsTabs({
   articles,
   defaultTab = "cases",
   casesLabel = "客户案例库",
-  articlesLabel = "行业深度观察",
+  articlesLabel = "智库深度观察",
 }: {
   cases: ReactNode;
   articles: ReactNode;

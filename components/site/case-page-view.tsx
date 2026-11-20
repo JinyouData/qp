@@ -32,10 +32,10 @@ export function CasePageView({ page }: { page: number }) {
 
   const breadcrumb =
     current === 1
-      ? [{ name: "首页", url: "/" }, { name: "汽配案例库", url: "/cases" }]
+      ? [{ name: "首页", url: "/" }, { name: "智库观察", url: "/cases" }]
       : [
           { name: "首页", url: "/" },
-          { name: "汽配案例库", url: "/cases" },
+          { name: "智库观察", url: "/cases" },
           { name: `第 ${current} 页`, url: `/cases/page/${current}` },
         ];
 
@@ -44,9 +44,9 @@ export function CasePageView({ page }: { page: number }) {
       <JsonLd data={breadcrumbSchema(breadcrumb)} />
 
       <PageHero
-        tag="CASE LIBRARY"
-        title="汽配案例库"
-        desc="不是理论，是已经跑通的选品与降退货逻辑。按标签筛选已交付场景，每篇都写明客户痛点、数据方案与可查证的量化结果。"
+        tag="INSIGHTS & CASES"
+        title="智库观察"
+        desc="查得到的真实客户案例，看得到的行业深度洞察。"
       >
         <CaseMetrics />
       </PageHero>
@@ -56,7 +56,7 @@ export function CasePageView({ page }: { page: number }) {
       <InsightsTabs
         defaultTab="cases"
         casesLabel="客户案例库"
-        articlesLabel="行业深度观察"
+        articlesLabel="智库深度观察"
         cases={
           <CaseLibrary
             pageCases={pageCases}
