@@ -314,3 +314,9 @@
     transition: none;
   }
 }
+
+/* ===== PC 页脚简介：文本平衡 + 专有名词不断行（渐进增强） ===== */
+.footer-intro {
+  text-wrap: balance;
+  word-break: keep-all;
+}

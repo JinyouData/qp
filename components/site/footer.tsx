@@ -80,8 +80,8 @@ export function Footer() {
             <p className="max-w-[26rem] text-sm font-semibold leading-relaxed text-brand-green">
               用数据洞察，化繁为金。
             </p>
-            <p className="mt-2 max-w-[26rem] text-sm leading-relaxed">
-              专注汽配跨境的数据智库。提供查得到的知识库、用得上的工具库、看透利润的数据库。
+            <p className="footer-intro mt-2 max-w-[28rem] text-sm leading-relaxed">
+              专注汽配跨境的数据智库。提供查得到的<span className="whitespace-nowrap">知识库</span>、用得上的<span className="whitespace-nowrap">工具库</span>、看透利润的<span className="whitespace-nowrap">数据库</span>。
             </p>
             <p className="mt-5 text-xs">
               📮
