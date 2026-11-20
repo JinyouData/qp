@@ -58,7 +58,7 @@ export default function InsightDetailPage({ params }: { params: { slug: string }
           }),
           breadcrumbSchema([
             { name: "首页", url: "/" },
-            { name: "汽配行业洞察", url: "/insights" },
+            { name: "智库洞察", url: "/insights" },
             { name: meta.title, url: `/insights/${meta.slug}` },
           ]),
         ]}

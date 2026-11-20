@@ -21,8 +21,7 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: "内容与信任",
     links: [
-      { href: "/insights", label: "汽配行业洞察" },
-      { href: "/cases", label: "客户成果与洞察" },
+      { href: "/insights", label: "智库洞察" },
       { href: "/about", label: "关于我们" },
     ],
   },
@@ -59,8 +58,7 @@ const MOBILE_GROUPS: MobileFooterGroup[] = [
     id: "content",
     title: "内容与信任",
     links: [
-      { href: "/insights", label: "汽配行业洞察" },
-      { href: "/cases", label: "客户成果与洞察" },
+      { href: "/insights", label: "智库洞察" },
       { href: "/about", label: "关于我们" },
     ],
   },

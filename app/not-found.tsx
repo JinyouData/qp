@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const LINKS = [
   { href: "/", label: "首页", desc: "从数据洞察开始" },
   { href: "/products", label: "服务目录", desc: "知识库 / 工具库 / 数据库" },
-  { href: "/cases", label: "数据洞察", desc: "看真实大盘与方法" },
+  { href: "/insights", label: "智库洞察", desc: "看案例与方法" },
   { href: "/about", label: "关于我们", desc: "我们做什么、不做什么" },
 ];
 
