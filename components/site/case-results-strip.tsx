@@ -7,19 +7,19 @@
 
 const METRICS = [
   {
+    value: "3,124,000+",
+    label: "底层真实 SKU 库",
+    note: "覆盖全网非标零配件的底层大盘",
+  },
+  {
+    value: "1,618,000+",
+    label: "去重深度校验商品",
+    note: "剔除重复与标品后的高质量核心资产",
+  },
+  {
     value: "18%",
     label: "平均退货率降低",
     note: "已交付卖家的适配错配排查后均值",
-  },
-  {
-    value: "200+",
-    label: "覆盖细分品类",
-    note: "已完成价格带与竞争格局诊断的类目",
-  },
-  {
-    value: "500+",
-    label: "累计诊断 SKU",
-    note: "已完成逐 SKU 毛利与适配校验的商品",
   },
 ];
 
@@ -48,7 +48,7 @@ export function CaseMetrics() {
             key={m.label}
             className="rounded-2xl border border-brand-orange/15 bg-card p-5 shadow-warm"
           >
-            <div className="text-3xl font-bold leading-none text-brand-green md:text-4xl">
+            <div className="whitespace-nowrap text-[28px] font-bold leading-none tracking-tight text-brand-green md:text-[34px]">
               {m.value}
             </div>
             <div className="mt-2.5 text-sm font-semibold">{m.label}</div>
