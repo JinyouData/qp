@@ -4,7 +4,13 @@ import { BRAND } from "@/lib/brand";
 import { BrandLogo } from "./brand-logo";
 import { FooterAccordion, type MobileFooterGroup } from "./footer-accordion";
 
-/** PC 端四列页脚：保持原有完整链接，不受移动端瘦身影响。 */
+/**
+ * PC 端三列页脚（国际 SaaS 规范）：
+ * - 左侧 Logo 介绍区占 40%，右侧「智库服务」「内容与信任」各占 30%
+ * - 「查询我的资料权限」归入「内容与信任」末位
+ * - 「SaaS与AI合作」紧跟「定制咨询」，企业级服务排在一起
+ * - 「支持与合规」列已彻底删除，隐私政策 / 服务条款下沉到版权行
+ */
 const COLS: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: "智库服务",
@@ -23,24 +29,17 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
     links: [
       { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
-    ],
-  },
-  {
-    title: "支持与合规",
-    links: [
       { href: "/access", label: "查询我的资料权限" },
-      { href: "/privacy", label: "隐私政策" },
-      { href: "/terms", label: "服务条款" },
     ],
   },
 ];
 
 /**
- * 移动端专用导航（<768px）：只保留两组，默认展开「智库服务」。
- * 与 PC 端的差异是有意的产品决策：
- * - 去掉「AI 核价助手」（工具库里已有入口）与低频的「SaaS与AI合作」
- * - 「支持与合规」三条按精简要求删/下沉后为空组，用户确认后整体取消
- * - 隐私政策 / 服务条款移到最底部 © 同行，以 12px 浅灰小字呈现
+ * 移动端专用导航（<768px）：与 PC 端两组分类口径一致。
+ * - 去掉低频的「AI 核价助手」（工具库里已有入口）
+ * - 「查询我的资料权限」归入「内容与信任」末位
+ * - 「SaaS与AI合作」紧跟「定制咨询」
+ * - 隐私政策 / 服务条款统一在底部版权行呈现，不再单独出现在手风琴里
  */
 const MOBILE_GROUPS: MobileFooterGroup[] = [
   {
@@ -52,6 +51,7 @@ const MOBILE_GROUPS: MobileFooterGroup[] = [
       { href: "/products#lib-tools", label: "工具库" },
       { href: "/products#lib-data", label: "数据库" },
       { href: "/consulting", label: "定制咨询" },
+      { href: "/partners", label: "SaaS与AI合作" },
     ],
   },
   {
@@ -60,6 +60,7 @@ const MOBILE_GROUPS: MobileFooterGroup[] = [
     links: [
       { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
+      { href: "/access", label: "查询我的资料权限" },
     ],
   },
 ];
@@ -70,8 +71,8 @@ export function Footer() {
   return (
     <footer className="border-t border-brand-green/10 bg-brand-cream pb-[84px] text-muted-foreground lg:pb-0">
       <div className="container-site py-6 md:py-12">
-        {/* ========== PC：四列完整页脚（原样保留） ========== */}
-        <div className="hidden gap-10 md:grid md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        {/* ========== PC：三列页脚（Logo 40% + 两列各 30%） ========== */}
+        <div className="hidden gap-10 md:grid md:grid-cols-[2fr_1.5fr_1.5fr]">
           <div>
             <Link href="/" className="mb-4 inline-flex items-center">
               <BrandLogo />
@@ -122,42 +123,27 @@ export function Footer() {
           </div>
         </div>
 
-        {/* ========== 版权行 ========== */}
+        {/* ========== 底部版权行：文案与法务链接合并，居中、极小、浅灰 ========== */}
         <div className="mt-5 border-t border-border pt-4 text-center md:mt-10 md:pt-6">
-          {/* PC：原完整版权声明 */}
-          <div className="hidden md:block">
-            <p className="break-words text-xs leading-relaxed text-gray-400">
-              © 2026 {BRAND.name} · 金游™ 出品 |{" "}
-              <span className="whitespace-nowrap">{BRAND.legalEntity} 保留所有权利</span>
-            </p>
-            <p className="mt-2 break-words text-xs leading-relaxed text-gray-400">
-              本站为知识资产与数据展示平台
-            </p>
-          </div>
-
-          {/* 移动端：© 与合规小链接同一行，12px 浅灰 */}
-          <div className="md:hidden">
-            <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-[12px] leading-relaxed text-gray-400">
-              <span className="whitespace-nowrap">© 2026 {BRAND.name} · 保留所有权利</span>
-              <span className="text-gray-300">|</span>
-              <Link
-                href="/privacy"
-                className="inline-flex min-h-11 items-center underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
-              >
-                隐私政策
-              </Link>
-              <span className="text-gray-300">·</span>
-              <Link
-                href="/terms"
-                className="inline-flex min-h-11 items-center underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
-              >
-                服务条款
-              </Link>
-            </p>
-            <p className="mt-1 text-[12px] leading-relaxed text-gray-400">
-              本站为知识资产与数据展示平台
-            </p>
-          </div>
+          <p className="break-words text-xs leading-relaxed text-gray-400">
+            © 2026 {BRAND.name} · 金游™ 出品 | {BRAND.legalEntity} 保留所有权利 |{" "}
+            <Link
+              href="/privacy"
+              className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
+            >
+              隐私政策
+            </Link>
+            {" · "}
+            <Link
+              href="/terms"
+              className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
+            >
+              服务条款
+            </Link>
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-gray-400">
+            本站为知识资产与数据展示平台
+          </p>
         </div>
       </div>
     </footer>
