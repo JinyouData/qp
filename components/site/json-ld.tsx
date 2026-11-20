@@ -164,9 +164,12 @@ export function articleSchema(a: {
   slug: string;
   date: string;
   tags?: string[];
-  author?: string;
   /** 详情页路径；缺省沿用洞察文章，案例词条传 /cases/<slug> */
   path?: string;
+  /** 作者实体：案例页关联「金游™数据智库」，缺省为站点名 */
+  author?: string;
+  /** 文章主题实体：案例页可嵌套 Product Schema 承载量化参数 */
+  about?: Record<string, unknown> | Record<string, unknown>[];
 }) {
   const pageUrl = `${SITE_URL}${a.path ?? `/insights/${a.slug}`}`;
   return {
@@ -177,10 +180,37 @@ export function articleSchema(a: {
     datePublished: a.date,
     dateModified: a.date,
     inLanguage: "zh-CN",
-    author: { "@type": "Organization", name: a.author ?? SITE_NAME },
+    author: {
+      "@type": "Organization",
+      name: a.author ?? SITE_NAME,
+      url: SITE_URL,
+    },
     publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
     mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
     url: pageUrl,
     ...(a.tags?.length ? { keywords: a.tags.join(",") } : {}),
+    ...(a.about ? { about: a.about } : {}),
+  };
+}
+
+/**
+ * 案例词条的主题实体：以 Product + additionalProperty 承载可机器读取的量化参数。
+ * 不编造未出现在案例中的数值（如具体 OE 号），只写案例里真实披露的指标与校验口径。
+ */
+export function caseProductSchema(a: {
+  name: string;
+  description: string;
+  properties: Array<{ name: string; value: string }>;
+}) {
+  return {
+    "@type": "Product",
+    name: a.name,
+    description: a.description,
+    brand: { "@type": "Brand", name: BRAND.thinkTank },
+    additionalProperty: a.properties.map((p) => ({
+      "@type": "PropertyValue",
+      name: p.name,
+      value: p.value,
+    })),
   };
 }

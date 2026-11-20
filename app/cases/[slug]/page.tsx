@@ -10,7 +10,13 @@ import {
   getCaseStudy,
   type CaseStudyEntry,
 } from "@/lib/case-studies";
-import { JsonLd, articleSchema, breadcrumbSchema } from "@/components/site/json-ld";
+import {
+  JsonLd,
+  articleSchema,
+  breadcrumbSchema,
+  caseProductSchema,
+} from "@/components/site/json-ld";
+import { BRAND } from "@/lib/brand";
 import { WecomCtaCard, WECOM_LEAD_TEXT } from "@/components/site/wecom-cta-card";
 import { Badge } from "@/components/ui/badge";
 
@@ -76,7 +82,17 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
             path: `/cases/${found.slug}`,
             date: found.date,
             tags: found.tags,
-            author: "汽配知识局 · 主理人",
+            author: BRAND.thinkTank,
+            about: caseProductSchema({
+              name: `${found.tags.join(" · ")} · 汽配数据诊断案例`,
+              description: found.solution,
+              properties: [
+                ...found.results.map((r) => ({ name: r.label, value: r.value })),
+                // 校验口径里的「OE 号 / 适配关系 / 价格带 / 毛利区间」以文字参数披露：
+                // 案例不提供具体 OE 号，不编造数值，只把真实口径写进 additionalProperty。
+                { name: "数据校验口径", value: found.solution },
+              ],
+            }),
           }),
           breadcrumbSchema([
             { name: "首页", url: "/" },
