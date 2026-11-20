@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/seo";
 import { getAllInsights } from "@/lib/insights";
-import { getAllCaseStudySlugs } from "@/lib/case-studies";
+import { getAllCaseStudySlugs, getCaseTotalPages } from "@/lib/case-studies";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 
 /**
@@ -23,6 +23,10 @@ const DYNAMIC_SOURCES: Record<string, () => string[]> = {
   "/products/[slug]": () => FALLBACK_PRODUCTS.map((p) => p.slug),
   "/insights/[slug]": () => getAllInsights().map((i) => i.slug),
   "/cases/[slug]": () => getAllCaseStudySlugs(),
+  // 案例库分页：第 1 页由 /cases 承担，这里展开 2..total，供爬虫逐页发现
+  "/cases/page/[page]": () =>
+    Array.from({ length: Math.max(0, getCaseTotalPages() - 1) }, (_, i) => String(i + 2)),
+  // 注：page/1 的 canonical 指回 /cases，故不在 sitemap 重复登记
 };
 
 interface DiscoveredRoute {

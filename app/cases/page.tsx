@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
-import { CaseLibrary } from "@/components/site/case-library";
-import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
-import { PageHero } from "@/components/site/page-hero";
+import { CasePageView } from "@/components/site/case-page-view";
 import { buildMetadata, KEYWORDS } from "@/lib/seo";
-import { getAllCaseStudies, getAllTags } from "@/lib/case-studies";
+
+export const dynamic = "force-static";
 
 export const metadata: Metadata = buildMetadata({
   title: "汽配案例库：按标签筛选的真实数据诊断案例",
@@ -15,25 +14,5 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default function CasesPage() {
-  const cases = getAllCaseStudies();
-  const tags = getAllTags();
-
-  return (
-    <>
-      <JsonLd
-        data={breadcrumbSchema([
-          { name: "首页", url: "/" },
-          { name: "案例库", url: "/cases" },
-        ])}
-      />
-
-      <PageHero
-        tag="CASE LIBRARY"
-        title="汽配案例库"
-        desc="按标签筛选已经跑通的诊断场景。每篇都写明客户痛点、数据方案与可查证的量化结果。"
-      />
-
-      <CaseLibrary cases={cases} tags={tags} />
-    </>
-  );
+  return <CasePageView page={1} />;
 }

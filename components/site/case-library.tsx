@@ -1,33 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import type { CaseStudyEntry } from "@/lib/case-studies";
+import type { CaseCardData } from "@/lib/case-studies";
 
 /* ============================================================
-   案例库：按标签聚合筛选
+   案例库 · 极简目录
 
-   - 标签来自全部案例的 frontmatter，自动聚合，无需手工维护
-   - 点击标签即时筛选，并把 ?tag= 写回 URL，便于分享与搜索引擎发现
-   - 案例卡片点击进 /cases/[slug] 独立详情页
+   - 卡片只保留四元素：标签 / 标题 / 一句话摘要 / 最多 2 个结果数据
+   - 固定高度 + 网格对齐，为 100+ 案例做铺垫
+   - 分页由 Server Component 静态预生成（/cases、/cases/page/2…），
+     每页独立 HTML，爬虫可抓取；本组件只负责筛选与展示，不碰 useSearchParams
    ============================================================ */
 
 export function CaseLibrary({
-  cases,
+  /** 当前服务端页的案例（用于无筛选时的默认展示，保证 SSR 与爬虫可见） */
+  pageCases,
+  /** 全部案例的精简数据，供客户端即时筛选 */
+  allCases,
   tags,
+  currentPage,
+  totalPages,
+  /** 分页链接基础路径，如 /cases/page/；第 1 页固定为 /cases */
+  pageBase,
 }: {
-  cases: CaseStudyEntry[];
+  pageCases: CaseCardData[];
+  allCases: CaseCardData[];
   tags: Array<{ tag: string; count: number }>;
+  currentPage: number;
+  totalPages: number;
+  pageBase: string;
 }) {
-  // 注意：这里刻意不用 next/navigation 的 useSearchParams —— 它会让静态路由在构建期
-  // 退化为纯客户端渲染，导致爬虫在 HTML 里看不到案例列表。改为从 window.location 读取，
-  // 页面本身完整静态预渲染全部案例，筛选只在客户端进行。
   const [active, setActive] = useState("");
+  const pageHref = (p: number) => (p === 1 ? "/cases" : `${pageBase}${p}`);
 
+  // 标签筛选仅作用于已加载案例；从 URL 读取初始标签，不触发 CSR bailout
   useEffect(() => {
     const read = () => new URLSearchParams(window.location.search).get("tag") ?? "";
     setActive(read());
@@ -37,127 +48,192 @@ export function CaseLibrary({
 
   function choose(tag: string) {
     setActive(tag);
-    const url = tag ? `/cases?tag=${encodeURIComponent(tag)}` : "/cases";
+    const url = tag
+      ? `${pageHref(currentPage)}?tag=${encodeURIComponent(tag)}`
+      : pageHref(currentPage);
     window.history.replaceState(null, "", url);
   }
 
-  const filtered = useMemo(
-    () => (active ? cases.filter((c) => c.tags.includes(active)) : cases),
-    [active, cases]
+  // 有标签时：在当前服务端页内即时过滤；无标签时：显示该页完整案例
+  const shown = useMemo(
+    () => (active ? pageCases.filter((c) => c.tags.includes(active)) : pageCases),
+    [active, pageCases]
   );
 
   return (
     <section className="section-pad">
       <div className="container-site">
-        {/* 标签筛选条 */}
-        <div className="mb-8 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => choose("")}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              active === ""
-                ? "border-brand-green bg-brand-green text-white"
-                : "border-border bg-card text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-            }`}
-            aria-pressed={active === ""}
-          >
-            全部 <span className="ml-1 opacity-70">{cases.length}</span>
-          </button>
-          {tags.map(({ tag, count }) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => choose(tag)}
-              className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                active === tag
-                  ? "border-brand-green bg-brand-green text-white"
-                  : "border-border bg-card text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-              }`}
-              aria-pressed={active === tag}
-            >
-              #{tag} <span className="ml-1 opacity-70">{count}</span>
-            </button>
-          ))}
+        {/* 标签筛选：横向可滑动胶囊，不换行、不撑高页面 */}
+        <div className="mb-6">
+          <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max items-center gap-2">
+              <button
+                type="button"
+                onClick={() => choose("")}
+                className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                  active === ""
+                    ? "border-brand-green bg-brand-green text-white"
+                    : "border-border bg-card text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+                }`}
+                aria-pressed={active === ""}
+              >
+                全部 <span className="ml-1 opacity-70">{allCases.length}</span>
+              </button>
+              {tags.map(({ tag, count }) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => choose(tag)}
+                  className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    active === tag
+                      ? "border-brand-green bg-brand-green text-white"
+                      : "border-border bg-card text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+                  }`}
+                  aria-pressed={active === tag}
+                >
+                  #{tag} <span className="ml-1 opacity-70">{count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span>
+              {active ? (
+                <>
+                  #{active}：本页匹配 <span className="font-semibold text-foreground">{shown.length}</span> 篇
+                </>
+              ) : (
+                <>共 {allCases.length} 篇案例 · 第 {currentPage}/{totalPages} 页</>
+              )}
+            </span>
+            {active && (
+              <button
+                type="button"
+                onClick={() => choose("")}
+                className="inline-flex items-center gap-1 text-brand-green hover:underline"
+              >
+                <X className="h-3 w-3" /> 清除筛选
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* 当前筛选结果计数 */}
-        <p className="mb-5 text-xs text-muted-foreground">
-          {active ? (
-            <>
-              标签 <span className="font-semibold text-foreground">#{active}</span> 下共{" "}
-              {filtered.length} 篇案例
-            </>
-          ) : (
-            <>共 {filtered.length} 篇已交付案例，按标签筛选查看相关场景</>
-          )}
-        </p>
-
-        {filtered.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            该标签下暂无案例，试试其他标签。
+            本页没有匹配「{active}」的案例，切换到其他页或清除筛选试试。
           </p>
         ) : (
-          <div className="grid gap-5 lg:grid-cols-3">
-            {filtered.map((c) => (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {shown.map((c) => (
               <Link
                 key={c.slug}
                 href={`/cases/${c.slug}`}
                 className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50"
                 aria-label={`阅读案例：${c.title}`}
               >
-                <Card className="card-hover h-full border-brand-orange/10 group-hover:border-brand-green/40">
-                  <CardContent className="flex h-full flex-col gap-4 p-6">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="mr-1 text-[11px] font-bold tracking-[0.16em] text-brand-orange-ink">
+                <Card className="card-hover flex h-full border-brand-orange/10 group-hover:border-brand-green/40">
+                  <CardContent className="flex h-full flex-col p-5">
+                    {/* 1) 标签 */}
+                    <div className="flex h-7 flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] font-bold tracking-[0.14em] text-brand-orange-ink">
                         {c.no}
                       </span>
-                      {c.tags.slice(0, 3).map((t) => (
-                        <Badge key={t} variant="secondary" className="font-medium">
+                      {c.tags.slice(0, 2).map((t) => (
+                        <Badge key={t} variant="secondary" className="px-2 py-0.5 text-[11px]">
                           {t}
                         </Badge>
                       ))}
                     </div>
 
-                    <h3 className="text-base font-bold leading-snug group-hover:text-primary">
+                    {/* 2) 标题：固定两行 */}
+                    <h3 className="mt-2 line-clamp-2 min-h-[3rem] text-base font-bold leading-snug group-hover:text-primary">
                       {c.title}
                     </h3>
 
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground">客户痛点</p>
-                      <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed">{c.pain}</p>
-                    </div>
+                    {/* 3) 一句话摘要：固定两行 */}
+                    <p className="mt-1 line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-muted-foreground">
+                      {c.summary}
+                    </p>
 
-                    <div className="rounded-xl bg-brand-green-soft/75 px-4 py-3.5">
-                      <div className="flex flex-wrap gap-x-8 gap-y-3">
-                        {c.results.map((r) => (
-                          <div key={r.label}>
-                            <div className="text-2xl font-bold leading-none text-brand-green">
-                              {r.value}
-                            </div>
-                            <div className="mt-1.5 text-xs text-muted-foreground">
-                              {r.label}
-                            </div>
+                    {/* 4) 最多两个核心结果 */}
+                    <div className="mt-3 flex min-h-[3.25rem] items-start gap-6 border-t pt-3">
+                      {c.results.map((r) => (
+                        <div key={r.label}>
+                          <div className="text-xl font-bold leading-none text-brand-green">
+                            {r.value}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="mt-auto flex flex-wrap gap-1.5">
-                      {c.tags.slice(0, 4).map((t) => (
-                        <span key={t} className="text-[11px] text-muted-foreground">
-                          #{t}
-                        </span>
+                          <div className="mt-1 text-[11px] text-muted-foreground">{r.label}</div>
+                        </div>
                       ))}
                     </div>
 
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-green">
-                      阅读全文 <ArrowRight className="h-3.5 w-3.5" />
+                    {/* 统一底部入口 */}
+                    <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-brand-green">
+                      阅读完整案例 <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </CardContent>
                 </Card>
               </Link>
             ))}
           </div>
+        )}
+
+        {/* 分页：服务端静态链接，保证每一页都能被爬虫抓取 */}
+        {!active && totalPages > 1 && (
+          <nav className="mt-10 flex flex-col items-center gap-4" aria-label="案例分页">
+            <div className="flex items-center gap-2">
+              {currentPage > 1 ? (
+                <Link
+                  href={pageHref(currentPage - 1)}
+                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+                >
+                  <ChevronLeft className="h-4 w-4" /> 上一页
+                </Link>
+              ) : (
+                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
+                  <ChevronLeft className="h-4 w-4" /> 上一页
+                </span>
+              )}
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Link
+                  key={p}
+                  href={pageHref(p)}
+                  aria-current={p === currentPage ? "page" : undefined}
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border text-sm ${
+                    p === currentPage
+                      ? "border-brand-green bg-brand-green text-white"
+                      : "text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+                  }`}
+                >
+                  {p}
+                </Link>
+              ))}
+
+              {currentPage < totalPages ? (
+                <Link
+                  href={pageHref(currentPage + 1)}
+                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+                >
+                  下一页 <ChevronRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
+                  下一页 <ChevronRight className="h-4 w-4" />
+                </span>
+              )}
+            </div>
+
+            {/* 加载更多：指向下一页的静态链接，既是连续浏览体验，也可被抓取 */}
+            {currentPage < totalPages && (
+              <Link
+                href={pageHref(currentPage + 1)}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/60 px-6 text-sm font-semibold text-brand-green hover:bg-brand-green-soft"
+              >
+                加载更多案例 <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </nav>
         )}
       </div>
     </section>

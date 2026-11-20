@@ -190,6 +190,48 @@ function readAll(): CaseStudyEntry[] {
   );
 }
 
+/** 每页展示的案例数：列表页默认只加载前 9 篇，为未来 100+ 案例做准备 */
+export const CASES_PER_PAGE = 9;
+
+/** 列表卡片所需的精简数据（避免把长段落传给客户端组件） */
+export interface CaseCardData {
+  slug: string;
+  no: string;
+  title: string;
+  tags: string[];
+  /** 一句话摘要：痛点或方案的首句 */
+  summary: string;
+  /** 最多两个核心结果数据 */
+  results: CaseMetric[];
+}
+
+function firstSentence(text: string): string {
+  const t = (text ?? "").trim();
+  if (!t) return "";
+  const m = t.match(/^[^。！？\n]+[。！？]?/);
+  return m ? m[0] : t.slice(0, 60);
+}
+
+export function toCaseCard(c: CaseStudyEntry): CaseCardData {
+  return {
+    slug: c.slug,
+    no: c.no,
+    title: c.title,
+    tags: c.tags,
+    summary: firstSentence(c.pain || c.solution),
+    results: c.results.slice(0, 2),
+  };
+}
+
+export function getAllCaseCards(): CaseCardData[] {
+  return readAll().map(toCaseCard);
+}
+
+/** 总页数（至少 1 页） */
+export function getCaseTotalPages(): number {
+  return Math.max(1, Math.ceil(readAll().length / CASES_PER_PAGE));
+}
+
 export function getAllCaseStudies(): CaseStudyEntry[] {
   return readAll();
 }

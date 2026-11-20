@@ -10,15 +10,18 @@
 
 export {
   getAllCaseStudies,
+  getAllCaseCards,
   getCaseStudy,
   getAllCaseStudySlugs,
   getAllTags,
   getCasesByTag,
   getRelatedCases,
+  getCaseTotalPages,
   slugForLegacyCase,
+  CASES_PER_PAGE,
 } from "./case-catalog";
 
-export type { CaseMetric, CaseStudyEntry } from "./case-catalog";
+export type { CaseMetric, CaseCardData, CaseStudyEntry } from "./case-catalog";
 
 import { getAllCaseStudies } from "./case-catalog";
 import type { CaseStudyEntry } from "./case-catalog";
