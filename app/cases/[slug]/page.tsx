@@ -17,7 +17,7 @@ import {
   caseProductSchema,
 } from "@/components/site/json-ld";
 import { BRAND } from "@/lib/brand";
-import { WecomCtaCard, WECOM_LEAD_TEXT } from "@/components/site/wecom-cta-card";
+import { WecomCtaButton } from "@/components/site/wecom-dialog";
 import { Badge } from "@/components/ui/badge";
 
 /* ============================================================
@@ -137,8 +137,8 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
           </div>
         </header>
 
-        {/* 正文：四段固定结构 */}
-        <div className="container-site max-w-3xl pb-14 pt-10 md:pb-20 md:pt-14">
+        {/* 正文：四段固定结构。底部留 ≥80px 安全区，避免移动端吸底悬浮条遮挡 Banner 与内链 */}
+        <div className="container-site max-w-3xl pb-24 pt-10 md:pb-20 md:pt-14">
           {SECTIONS.map((s) => (
             <section key={s.key} className="mb-12 last:mb-0">
               <div className="mb-5 flex items-baseline gap-3 border-b border-brand-orange/15 pb-3">
@@ -187,6 +187,21 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
             不代表你将获得同样结果。
           </p>
 
+          {/* 轻量转化 Banner：白底 + 一根浅灰分割线，去掉巨型二维码卡片 */}
+          <div className="mt-8 flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <p className="text-sm font-medium text-foreground/90 md:text-base">
+              想看看你的品类有没有类似的利润空间？
+            </p>
+            <WecomCtaButton
+              size="sm"
+              variant="outline"
+              label="联系主理人诊断"
+              from={`case:${found.slug}`}
+              subject={found.title}
+              className="shrink-0 self-start rounded-lg px-5 sm:self-auto"
+            />
+          </div>
+
           {/* 内链：其他案例词条，帮助搜索引擎发现全部详情页 */}
           {others.length > 0 && (
             <div className="mt-8">
@@ -207,14 +222,6 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
           )}
         </div>
       </article>
-
-      {/* 底部 CTA：用户指定的唯一转化话术，复用全站收口组件 */}
-      <WecomCtaCard
-        title="看看你的品类有没有类似的利润空间？"
-        desc={`联系主理人获取诊断。${WECOM_LEAD_TEXT}`}
-        from={`case:${found.slug}`}
-        subject={found.title}
-      />
     </>
   );
 }
