@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
+import { CASE_STUDIES } from "@/lib/case-studies";
 import { buildMetadata, KEYWORDS } from "@/lib/seo";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { PageHero } from "@/components/site/page-hero";
@@ -37,55 +40,6 @@ const METRICS = [
     value: "500+",
     label: "累计诊断 SKU",
     note: "已完成逐 SKU 毛利与适配校验的商品",
-  },
-];
-
-/** 深度案例：客户信息均已脱敏，只保留可公开的量化结果 */
-const CASES = [
-  {
-    no: "CASE 01",
-    tags: ["欧洲平台卖家", "车灯类目", "初创团队"],
-    pain:
-      "车灯适配表靠人工比对，同一车型在不同平台标注不一致，发货后大量因「装不上」退回，客服和运费两头赔。",
-    solution:
-      "接入金游数据智库的适配关系库，对 312 万条底层 SKU 的 OE 号、车型年款与适配关系做三层校验，在上架前把错配 SKU 直接筛掉。",
-    results: [
-      { value: "-18%", label: "退货率" },
-      { value: "-42%", label: "适配纠纷" },
-    ],
-    quote:
-      "以前每个月都在处理「装不上」的退货，上架前能查到适配关系之后，这类单子基本没了。",
-    author: "欧洲平台车灯卖家 · L 先生",
-  },
-  {
-    no: "CASE 02",
-    tags: ["跨境多平台", "制动件类目", "3 人小团队"],
-    pain:
-      "按人民币售价直接折算定价，汇率、平台佣金、退货损耗都没算进去，看着天天出单，实际一直在贴钱。",
-    solution:
-      "用金游数据智库的黄金毛利区间表逐 SKU 重算全成本，对照 161.8 万+ 去重商品的价格带，砍掉 40% 毛利线以下的高退货款。",
-    results: [
-      { value: "+12%", label: "毛利率" },
-      { value: "-37%", label: "在售 SKU 数" },
-    ],
-    quote:
-      "第一次看到每个 SKU 的真实毛利，才发现有三分之一的款是白干。砍掉之后利润反而涨了。",
-    author: "跨境卖家 · W 女士",
-  },
-  {
-    no: "CASE 03",
-    tags: ["国内电商卖家", "易损件类目", "成长期团队"],
-    pain:
-      "选品靠跟爆款，上新一批压一批，滞销库存占着现金，也说不清下一个该往哪个细分品类加。",
-    solution:
-      "调取金游数据智库的细分品类价格带与竞争格局，对 200+ 细分品类做机会打分，按可回溯的口径重排上新优先级。",
-    results: [
-      { value: "×2.3", label: "测款通过率" },
-      { value: "-29%", label: "滞销库存占比" },
-    ],
-    quote:
-      "不用再赌爆款了，先看数据再决定进不进，库存周转明显轻了。",
-    author: "店铺负责人 · C 先生",
   },
 ];
 
@@ -133,51 +87,66 @@ export default function ContentPage() {
             desc="客户身份、遇到的问题、调用了金游数据智库的哪部分数据、最后落到什么数字，都在下面。"
           />
           <div className="grid gap-5 lg:grid-cols-3">
-            {CASES.map((c) => (
-              <Card key={c.no} className="card-hover h-full border-brand-orange/10">
-                <CardContent className="flex h-full flex-col gap-4 p-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="mr-1 text-[11px] font-bold tracking-[0.16em] text-brand-orange-ink">
-                      {c.no}
-                    </span>
-                    {c.tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="font-medium">
-                        {t}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground">客户痛点</p>
-                    <p className="mt-1.5 text-sm leading-relaxed">{c.pain}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground">我们的数据方案</p>
-                    <p className="mt-1.5 text-sm leading-relaxed">{c.solution}</p>
-                  </div>
-
-                  <div className="rounded-xl bg-brand-green-soft/75 px-4 py-3.5">
-                    <div className="flex flex-wrap gap-x-8 gap-y-3">
-                      {c.results.map((r) => (
-                        <div key={r.label}>
-                          <div className="text-2xl font-bold leading-none text-brand-green">
-                            {r.value}
-                          </div>
-                          <div className="mt-1.5 text-xs text-muted-foreground">{r.label}</div>
-                        </div>
+            {CASE_STUDIES.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/cases/${c.slug}`}
+                className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50"
+                aria-label={`阅读案例：${c.title}`}
+              >
+                <Card className="card-hover h-full border-brand-orange/10 group-hover:border-brand-green/40">
+                  <CardContent className="flex h-full flex-col gap-4 p-6">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="mr-1 text-[11px] font-bold tracking-[0.16em] text-brand-orange-ink">
+                        {c.no}
+                      </span>
+                      {c.audienceTags.map((t) => (
+                        <Badge key={t} variant="secondary" className="font-medium">
+                          {t}
+                        </Badge>
                       ))}
                     </div>
-                  </div>
 
-                  <blockquote className="mt-auto border-l-2 border-brand-orange/40 pl-3 text-sm italic leading-relaxed">
-                    「{c.quote}」
-                    <footer className="mt-2 text-xs not-italic text-muted-foreground">
-                      — {c.author}
-                    </footer>
-                  </blockquote>
-                </CardContent>
-              </Card>
+                    <h3 className="text-base font-bold leading-snug group-hover:text-primary">
+                      {c.title}
+                    </h3>
+
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">客户痛点</p>
+                      <p className="mt-1.5 text-sm leading-relaxed">{c.pain}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">我们的数据方案</p>
+                      <p className="mt-1.5 text-sm leading-relaxed">{c.solution}</p>
+                    </div>
+
+                    <div className="rounded-xl bg-brand-green-soft/75 px-4 py-3.5">
+                      <div className="flex flex-wrap gap-x-8 gap-y-3">
+                        {c.results.map((r) => (
+                          <div key={r.label}>
+                            <div className="text-2xl font-bold leading-none text-brand-green">
+                              {r.value}
+                            </div>
+                            <div className="mt-1.5 text-xs text-muted-foreground">{r.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <blockquote className="mt-auto border-l-2 border-brand-orange/40 pl-3 text-sm italic leading-relaxed">
+                      「{c.quote}」
+                      <footer className="mt-2 text-xs not-italic text-muted-foreground">
+                        — {c.author}
+                      </footer>
+                    </blockquote>
+
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-green">
+                      阅读全文 <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>

@@ -19,7 +19,7 @@ const CANONICAL_HOST = "jinyoudata.com";
 
 /**
  * 已彻底下线 / 已改名的路由：
- * - /cases                    内容已合并进 /content
+ * - /cases（仅列表页）         内容已合并进 /content；/cases/[slug] 案例词条详情页已重新启用，必须放行
  * - /admin                    线索看板随全站表单下线一并关闭（表单已无数据来源，且含输入框）
  * - /courses                  培训课程体系已砍掉，改为「数据订阅与会员版」
  * - /products/courses         同上（原课程产品详情）
@@ -32,7 +32,7 @@ const CANONICAL_HOST = "jinyoudata.com";
  * - /products/toolkit-inventory 《库存周转模板》→ AI 库存健康与清仓顾问
  */
 const RETIRED: Record<string, string> = {
-  "/cases": "/content",
+  // "/cases" 不在此表：列表页跳转见下方精确匹配，/cases/[slug] 是现行详情页路由
   "/admin": "/",
   "/courses": "/products/data-subscription",
   "/products/courses": "/products/data-subscription",
@@ -93,6 +93,15 @@ export function middleware(request: NextRequest) {
 
   // 2) 已下线 / 改名路由 → 新地址，301，保留查询串
   const { pathname } = request.nextUrl;
+
+  // /cases 列表页早已合并进 /content；但 /cases/[slug] 案例词条详情页是现行路由，
+  // 不能套用下面的前缀匹配，否则子路径会被 301 到 /content。这里只做精确匹配。
+  if (pathname === "/cases") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/content";
+    return withSecurityHeaders(NextResponse.redirect(target, 301));
+  }
+
   const key = Object.keys(RETIRED).find(
     (k) => pathname === k || pathname.startsWith(`${k}/`)
   );

@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/seo";
 import { getAllInsights } from "@/lib/insights";
+import { getAllCaseStudySlugs } from "@/lib/case-studies";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 
 /**
@@ -21,6 +22,7 @@ const DYNAMIC_SEGMENT = /\[[^\]]+\]/;
 const DYNAMIC_SOURCES: Record<string, () => string[]> = {
   "/products/[slug]": () => FALLBACK_PRODUCTS.map((p) => p.slug),
   "/insights/[slug]": () => getAllInsights().map((i) => i.slug),
+  "/cases/[slug]": () => getAllCaseStudySlugs(),
 };
 
 interface DiscoveredRoute {
@@ -86,11 +88,13 @@ function priorityOf(route: string): number {
   if (route === "/") return 1.0;
   // 工具库四个 AI 助手是重点落地页，与产品详情页同级权重
   if (route === "/products" || route.startsWith("/products/") || route.startsWith("/tools/")) return 0.8;
+  // 案例词条是 SEO 独立收录落地点，优先级高于普通内页
+  if (route === "/cases" || route.startsWith("/cases/")) return 0.7;
   return 0.5;
 }
 
 function changeFrequencyOf(route: string): MetadataRoute.Sitemap[number]["changeFrequency"] {
-  if (route === "/" || route === "/content" || route === "/insights") return "weekly";
+  if (route === "/" || route === "/content" || route === "/insights" || route.startsWith("/cases/")) return "weekly";
   if (route === "/privacy" || route === "/terms") return "yearly";
   return "monthly";
 }

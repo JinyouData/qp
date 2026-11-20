@@ -11,6 +11,7 @@ import { HeroDataBoard } from "@/components/site/hero-data-board";
 import { DataDashboard } from "@/components/site/data-dashboard";
 import { WecomCtaButton } from "@/components/site/wecom-dialog";
 import { getCases } from "@/lib/data";
+import { slugForLegacyCase } from "@/lib/case-studies";
 
 /* 首页只做两件事：用数据证明，用加微收口。 */
 
@@ -323,32 +324,41 @@ export default async function HomePage() {
           />
           <div className="grid gap-4 md:grid-cols-3">
             {homeCases.map((c) => (
-              <Card key={c.id} className="card-hover h-full">
-                <CardContent className="flex h-full flex-col gap-3 p-5">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-brand-green">
-                    <Quote className="h-4 w-4" />
-                    {c.client}
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-semibold text-muted-foreground">问题：</span>
-                      {c.problem}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-muted-foreground">方案：</span>
-                      {c.solution}
-                    </p>
-                  </div>
-                  <div className="mt-auto grid grid-cols-2 gap-2 border-t border-dashed pt-3">
-                    {c.metrics.map((m) => (
-                      <div key={m.label}>
-                        <div className="text-lg font-bold text-brand-red">{m.value}</div>
-                        <div className="text-xs text-muted-foreground">{m.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <Link
+                key={c.id}
+                href={`/cases/${slugForLegacyCase(c)}`}
+                className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50"
+              >
+                <Card className="card-hover h-full group-hover:border-brand-green/40">
+                  <CardContent className="flex h-full flex-col gap-3 p-5">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-green">
+                      <Quote className="h-4 w-4" />
+                      {c.client}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="font-semibold text-muted-foreground">问题：</span>
+                        {c.problem}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-muted-foreground">方案：</span>
+                        {c.solution}
+                      </p>
+                    </div>
+                    <div className="mt-auto grid grid-cols-2 gap-2 border-t border-dashed pt-3">
+                      {c.metrics.map((m) => (
+                        <div key={m.label}>
+                          <div className="text-lg font-bold text-brand-red">{m.value}</div>
+                          <div className="text-xs text-muted-foreground">{m.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-green">
+                      阅读全文 <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>

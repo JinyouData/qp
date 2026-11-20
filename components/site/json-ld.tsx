@@ -165,7 +165,10 @@ export function articleSchema(a: {
   date: string;
   tags?: string[];
   author?: string;
+  /** 详情页路径；缺省沿用洞察文章，案例词条传 /cases/<slug> */
+  path?: string;
 }) {
+  const pageUrl = `${SITE_URL}${a.path ?? `/insights/${a.slug}`}`;
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -176,7 +179,8 @@ export function articleSchema(a: {
     inLanguage: "zh-CN",
     author: { "@type": "Organization", name: a.author ?? SITE_NAME },
     publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/insights/${a.slug}` },
+    mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+    url: pageUrl,
     ...(a.tags?.length ? { keywords: a.tags.join(",") } : {}),
   };
 }
