@@ -144,14 +144,14 @@ export function Footer() {
           </p>
           {/* 移动端：精简版权（去掉公司名），仅保留品牌 + 法务链接，允许折行居中 */}
           <p className="break-words text-xs leading-relaxed text-gray-400 md:hidden">
-            © 2026 {BRAND.name} · 金游™ 出品 |{" "}
+            © 2026 {BRAND.name} · 金游™ 保留所有权利 |{" "}
             <Link
               href="/privacy"
               className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
             >
               隐私政策
             </Link>
-            {" · "}
+            {"  "}
             <Link
               href="/terms"
               className="underline-offset-2 transition-colors hover:text-brand-orange-ink hover:underline"
