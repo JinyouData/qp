@@ -77,13 +77,13 @@ export function Footer() {
             <Link href="/" className="mb-4 inline-flex items-center">
               <BrandLogo />
             </Link>
-            <p className="text-sm font-semibold leading-relaxed text-brand-green">
+            <p className="max-w-[26rem] text-sm font-semibold leading-relaxed text-brand-green">
               用数据洞察，化繁为金。
             </p>
-            <p className="mt-2 text-sm leading-relaxed">
+            <p className="mt-2 max-w-[26rem] text-sm leading-relaxed">
               专注汽配跨境的数据智库。提供查得到的知识库、用得上的工具库、看透利润的数据库。
             </p>
-            <p className="mt-3 text-xs">
+            <p className="mt-5 text-xs">
               📮
               <a
                 href={BRAND.emailHref}
