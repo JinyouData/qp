@@ -4,14 +4,20 @@ import { cn } from "@/lib/utils";
 export function PageHero({
   tag,
   title,
+  mobileTitle,
   desc,
+  descClassName,
   children,
   aside,
   className,
 }: {
   tag?: string;
   title: string;
+  /** 移动端（<768px）替代标题，用于精简长标题避免孤行；PC 仍用 title */
+  mobileTitle?: string;
   desc?: string;
+  /** 覆盖副标题的 margin-top（移动端可传更小值让首屏更紧凑） */
+  descClassName?: string;
   children?: React.ReactNode;
   /** 可选右侧视觉区（md 以上显示，移动端自动隐藏，保证窄屏平衡） */
   aside?: React.ReactNode;
@@ -31,9 +37,23 @@ export function PageHero({
               {tag}
             </span>
           )}
-          <h1 className="max-w-3xl text-3xl font-bold leading-tight md:text-4xl">{title}</h1>
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight md:text-4xl">
+            {mobileTitle ? (
+              <>
+                <span className="md:hidden">{mobileTitle}</span>
+                <span className="hidden md:inline">{title}</span>
+              </>
+            ) : (
+              title
+            )}
+          </h1>
           {desc && (
-            <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground md:text-base">
+            <p
+              className={cn(
+                "mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground md:text-base",
+                descClassName
+              )}
+            >
               {desc}
             </p>
           )}

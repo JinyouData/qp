@@ -62,7 +62,9 @@ export default function AboutPage() {
       <PageHero
         tag="ABOUT"
         title="我们是专注汽配跨境的数据智库"
+        mobileTitle="专注汽配跨境的数据智库"
         desc="把散落在老师傅脑子里、Excel 表里、聊天记录里的经验，整理成查得到的知识库、用得上的工具库、看透利润的数据库。"
+        descClassName="mt-2.5 md:mt-4"
         aside={<DataTerminal />}
       >
         <p className="text-base font-semibold text-brand-green">
