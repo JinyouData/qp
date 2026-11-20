@@ -1,4 +1,5 @@
 import { CaseLibrary } from "@/components/site/case-library";
+import { CaseMetrics, TestimonialsStrip } from "@/components/site/case-results-strip";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { PageHero } from "@/components/site/page-hero";
 import {
@@ -41,10 +42,14 @@ export function CasePageView({ page }: { page: number }) {
       <JsonLd data={breadcrumbSchema(breadcrumb)} />
 
       <PageHero
-        tag="CASE LIBRARY"
-        title="汽配案例库"
-        desc="按标签筛选已经跑通的诊断场景。每篇都写明客户痛点、数据方案与可查证的量化结果。"
-      />
+        tag="CLIENT RESULTS · CASE LIBRARY"
+        title="客户成果与案例库"
+        desc="不是理论，是已经跑通的选品与降退货逻辑。按标签筛选已交付场景，每篇都写明客户痛点、数据方案与可查证的量化结果。"
+      >
+        <CaseMetrics />
+      </PageHero>
+
+      <TestimonialsStrip />
 
       <CaseLibrary
         pageCases={pageCases}

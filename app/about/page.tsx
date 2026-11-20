@@ -163,7 +163,7 @@ export default function AboutPage() {
 
       <section className="pb-16 text-center">
         <Button asChild variant="outline">
-          <Link href="/content">
+          <Link href="/cases">
             先看案例证据 <ArrowRight />
           </Link>
         </Button>

@@ -98,7 +98,7 @@ function priorityOf(route: string): number {
 }
 
 function changeFrequencyOf(route: string): MetadataRoute.Sitemap[number]["changeFrequency"] {
-  if (route === "/" || route === "/content" || route === "/insights" || route.startsWith("/cases/")) return "weekly";
+  if (route === "/" || route === "/insights" || route.startsWith("/cases")) return "weekly";
   if (route === "/privacy" || route === "/terms") return "yearly";
   return "monthly";
 }

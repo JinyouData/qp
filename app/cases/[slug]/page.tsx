@@ -105,7 +105,7 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
           }),
           breadcrumbSchema([
             { name: "首页", url: "/" },
-            { name: "客户成果与洞察", url: "/content" },
+            { name: "客户成果与案例库", url: "/cases" },
             { name: found.title, url: `/cases/${found.slug}` },
           ]),
         ]}
@@ -116,10 +116,10 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
         <header className="border-b bg-brand-cream">
           <div className="container-site max-w-3xl pb-14 pt-10 md:pb-20 md:pt-14">
             <Link
-              href="/content"
+              href="/cases"
               className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
             >
-              <ArrowLeft className="h-4 w-4" /> 返回客户成果
+              <ArrowLeft className="h-4 w-4" /> 返回案例库
             </Link>
 
             <div className="mb-3 flex flex-wrap gap-1.5">
@@ -190,7 +190,7 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
             </section>
           ))}
 
-          {/* 合规脚注：与 /content 口径一致 */}
+          {/* 合规脚注：与案例库列表口径一致 */}
           <p className="mt-10 border-t pt-5 text-xs leading-relaxed text-muted-foreground">
             数据来自已交付的选品与库存诊断项目，经客户授权并脱敏，统计口径以项目交付报告为准；
             不代表你将获得同样结果。

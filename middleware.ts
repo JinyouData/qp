@@ -19,7 +19,8 @@ const CANONICAL_HOST = "jinyoudata.com";
 
 /**
  * 已彻底下线 / 已改名的路由：
- * - /cases                    已升级为案例库列表页（标签筛选），与 /cases/[slug] 详情页一并放行
+ * - /content                  已合并进 /cases（指标 + 证言 + 案例库），301 跳转
+ * - /cases                    案例库列表页（标签筛选），与 /cases/[slug] 详情页一并放行
  * - /admin                    线索看板随全站表单下线一并关闭（表单已无数据来源，且含输入框）
  * - /courses                  培训课程体系已砍掉，改为「数据订阅与会员版」
  * - /products/courses         同上（原课程产品详情）
@@ -32,6 +33,8 @@ const CANONICAL_HOST = "jinyoudata.com";
  * - /products/toolkit-inventory 《库存周转模板》→ AI 库存健康与清仓顾问
  */
 const RETIRED: Record<string, string> = {
+  // /content 已合并进 /cases（指标 + 证言 + 案例库统一到一个页面）
+  "/content": "/cases",
   // "/cases" 不在下线表：它是按标签筛选的案例库，/cases/[slug] 是案例详情页
   "/admin": "/",
   "/courses": "/products/data-subscription",

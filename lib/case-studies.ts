@@ -3,7 +3,7 @@
 
    真正的数据源已迁移到 content/cases/*.mdx，由 lib/case-catalog.ts
    通过 gray-matter 读取。本文件保留原有导出名，避免改动
-   /content、/cases/[slug]、sitemap.ts 等所有调用方。
+   /cases 列表、/cases/[slug]、sitemap.ts、llms.txt 等所有调用方。
 
    新增案例只需在 content/cases/ 下放一个 .mdx 文件。
    ============================================================ */
