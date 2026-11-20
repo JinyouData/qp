@@ -190,7 +190,7 @@ export default function CaseDetailPage({ params }: { params: { slug: string } })
           {/* 轻量转化 Banner：白底 + 一根浅灰分割线，去掉巨型二维码卡片 */}
           <div className="mt-8 flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
             <p className="text-sm font-medium text-foreground/90 md:text-base">
-              想看看你的品类有没有类似的利润空间？
+              想看看你的品类有没有同样的优化空间？
             </p>
             <WecomCtaButton
               size="sm"
