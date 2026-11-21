@@ -53,7 +53,7 @@ export function HeroDataBoard() {
           LIVE DATA ASSET
         </span>
         <span className={`font-mono text-[9px] tracking-wider sm:text-[10px] ${LABEL}`}>
-          11 MONTHS · REAL DATA
+          2 YEARS · REAL DATA
         </span>
       </div>
 

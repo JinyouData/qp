@@ -73,14 +73,14 @@ export function DataTerminal() {
 
         {/* 底部状态条 */}
         <div className="flex items-center justify-between border-t border-brand-gray/70 px-4 py-2.5 text-[10px] text-[#AFA99E]">
-          <span>UPTIME 11 MONTHS</span>
+          <span>UPTIME 24 MONTHS</span>
           <span>NO ERRORS</span>
         </div>
       </div>
 
       <p className="mt-3 flex items-center gap-1.5 pl-1 text-[11px] text-muted-foreground">
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green" />
-        底层系统已持续稳定运行 11 个月
+        底层数据系统已持续稳定运转 2 年
       </p>
     </div>
   );

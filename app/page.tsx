@@ -285,7 +285,7 @@ export default async function HomePage() {
       {/* ========== 真实交易大盘洞察：三张纯代码图表，不再重复大数字 ========== */}
       <section className="section-pad border-y border-brand-green/10 bg-brand-green-soft/35">
         <div className="container-site">
-          <SectionHeading tag="金游™ 智库 · 11 个月真实大盘" title="金游智库 · 底层大盘洞察" />
+          <SectionHeading tag="金游™ 智库 · 2 年真实大盘" title="金游智库 · 底层大盘洞察" />
 
           <DataDashboard />
 
@@ -295,7 +295,7 @@ export default async function HomePage() {
 
           <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0 text-brand-green" />
-            数据口径：11 个月连续观测 · 161.8 万+ 去重商品 · 312 万条底层 SKU · 每条结论均可回溯原始记录
+            数据口径：2 年连续观测 · 161.8 万+ 去重商品 · 312 万条底层 SKU · 每条结论均可回溯原始记录
           </p>
         </div>
       </section>
