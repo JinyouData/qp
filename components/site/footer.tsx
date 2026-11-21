@@ -159,7 +159,7 @@ export function Footer() {
               服务条款
             </Link>
           </p>
-          <p className="mt-2 text-xs leading-relaxed text-gray-400">
+          <p className="mt-2 text-[11px] leading-relaxed text-gray-400 md:text-xs">
             本站为知识资产与数据展示平台
           </p>
         </div>
