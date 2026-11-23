@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, CalendarDays, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +79,8 @@ export function InsightsLibrary({
   pageBase: string;
 }) {
   const [active, setActive] = useState("");
+  /** 移动端折叠状态：仅控制 CSS 展示，卡片 DOM 始终存在（SEO 友好） */
+  const [expanded, setExpanded] = useState(false);
   const pageHref = (p: number) => (p === 1 ? "/cases" : `${pageBase}${p}`);
 
   // 从 URL 读取初始标签，不触发 CSR bailout
@@ -170,9 +172,40 @@ export function InsightsLibrary({
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {shown.map((item) => (
+            {shown.slice(0, 3).map((item) => (
               <InsightCard key={item.slug} item={item} />
             ))}
+
+            {shown.length > 3 && (
+              <div
+                className="case-extra-wrap md:contents"
+                data-open={expanded ? "true" : "false"}
+              >
+                <div className="case-extra-inner flex flex-col gap-4 md:contents">
+                  {shown.slice(3).map((item) => (
+                    <InsightCard key={item.slug} item={item} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 移动端展开/收起：仅折叠 CSS 展示，卡片 DOM 始终在 HTML 中 */}
+        {shown.length > 3 && (
+          <div className="mt-4 flex justify-center md:hidden">
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/50 px-6 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green-soft"
+            >
+              {expanded ? (
+                <>收起观察 <ArrowUp className="h-4 w-4" /></>
+              ) : (
+                <>展开更多观察 <ArrowDown className="h-4 w-4" /></>
+              )}
+            </button>
           </div>
         )}
 
