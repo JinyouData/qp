@@ -190,8 +190,8 @@ function readAll(): CaseStudyEntry[] {
   );
 }
 
-/** 每页展示的案例数：列表页默认只加载前 9 篇，为未来 100+ 案例做准备 */
-export const CASES_PER_PAGE = 9;
+/** 每页展示的案例数：与「智库深度观察」保持一致，每页 6 条 */
+export const CASES_PER_PAGE = 6;
 
 /** 列表卡片所需的精简数据（避免把长段落传给客户端组件） */
 export interface CaseCardData {
