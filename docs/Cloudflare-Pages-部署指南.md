@@ -11,7 +11,7 @@
 
 | 事项 | 状态 |
 | --- | --- |
-| 代码推 GitHub | **已完成**，`JinyouMate/qp` 分支 `main`，HEAD `6115a17`（SSH 密钥 `~/.ssh/id_ed25519_github_qipei`） |
+| 代码推 GitHub | **已完成**，`JinyouData/qp` 分支 `main`，HEAD `6115a17`（SSH 密钥 `~/.ssh/id_ed25519_github_qipei`） |
 | Cloudflare Pages 项目 | **已创建**：`qipei-web`，账号 `c8887f012b943118493574f8268764e7` |
 | 首次部署 | **已上线**：<https://qipei-web.pages.dev>（裸链直达，**无 sharecode**） |
 | 环境变量 | **已配置 6 个 secrets**：`NEXT_PUBLIC_SITE_URL`、`NEXT_PUBLIC_SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_TOKEN`、`RESEND_FROM_EMAIL`、`LEAD_NOTIFY_EMAIL` |
@@ -26,7 +26,7 @@
 
 `qipei-web` 是 `wrangler pages deploy` 创建的 Direct Upload 项目（API 里 `source: null`），因此：
 
-1. 新建项目 `qipei-web-git`，来源选 `JinyouMate/qp`；
+1. 新建项目 `qipei-web-git`，来源选 `JinyouData/qp`；
 2. 构建命令 `npm run pages:build`、输出目录 `.vercel/output/static`、`NODE_VERSION=20`、6 个环境变量照抄；
 3. 首构建通过后，把 `jinyoudata.com` / `www` 从旧项目解绑、挂到新项目；
 4. 旧项目保留或删除均可（删了 `.pages.dev` 子域会释放）。
@@ -116,7 +116,7 @@ export const runtime = "edge";
 ### 现状（我帮你查过了）
 
 - 项目路径：`/Users/qiuganyou/WorkBuddy/2026-10-16-12-18-51/qipei-web`
-- 本地分支 `main`，最新提交 `a1b47b1`，远端已配置 `https://github.com/JinyouMate/qp.git`
+- 本地分支 `main`，最新提交 `a1b47b1`，远端已配置 `https://github.com/JinyouData/qp.git`
 - `.env.local`（含真实 Supabase 密钥）**已被 .gitignore 忽略，不在仓库里**，可以放心推
 - 但本机终端访问 GitHub 返回 `CONNECT tunnel failed, response 502`（代理/网络问题），
   所以**命令行推送可能失败**；另外 `git config user.name/email` 还没设置
@@ -133,7 +133,7 @@ git status --short     # 能正常列出改动，就说明锁清掉了
 
 ### 方式 A：GitHub Desktop（最省事，推荐，能绕开终端代理问题）
 
-1. 下载安装 <https://desktop.github.com/>，打开后用浏览器登录你的 GitHub 账号（`JinyouMate`）。
+1. 下载安装 <https://desktop.github.com/>，打开后用浏览器登录你的 GitHub 账号（`JinyouData`）。
 2. 菜单 `File → Add Local Repository…`，选择目录
    `/Users/qiuganyou/WorkBuddy/2026-10-16-12-18-51/qipei-web`，确认添加。
 3. 左侧 **Changes** 会列出本次所有改动（`wrangler.toml`、部署指南、5 个 API 路由等）。
@@ -141,7 +141,7 @@ git status --short     # 能正常列出改动，就说明锁清掉了
    （GitHub Desktop 用登录账号自动设置提交身份，不用手配 `user.name/email`。）
 4. 因为仓库里已经有 remote，右上角会显示 `Push origin`（如果远端仓库还不存在，会显示
    `Publish repository` → 勾选 **Keep this code private** → 点 Publish）。
-5. 点 `Push origin`。等进度条走完，去 <https://github.com/JinyouMate/qp> 刷新，
+5. 点 `Push origin`。等进度条走完，去 <https://github.com/JinyouData/qp> 刷新，
    能看到 `docs/Cloudflare-Pages-部署指南.md`、`wrangler.toml` 就成功了。
 6. 如果 GitHub 上还没有这个仓库：在 GitHub 网页右上角 `+ → New repository`，
    Name 填 `qp`，选 **Private**，**不要**勾选 Add README / .gitignore（本地已有），Create repository；
@@ -156,7 +156,7 @@ git status --short     # 能正常列出改动，就说明锁清掉了
 cd /Users/qiuganyou/WorkBuddy/2026-10-16-12-18-51/qipei-web
 
 # 第一次用 git 需要先设置身份（GitHub Desktop 方式不用管这两行）
-git config user.name  "JinyouMate"
+git config user.name  "JinyouData"
 git config user.email "jinyoumate@163.com"
 
 git status --short          # 确认没有 .env.local
@@ -196,7 +196,7 @@ git push -u origin main
 2. 左侧 **Workers & Pages** → **Create application** → 切到 **Pages** 标签 → **Connect to Git**。
 3. 选 **GitHub** → 首次会跳授权页 → `Authorize Cloudflare` → 允许访问仓库
    （如果列表里看不到私有仓库，点 `Configure` / `Install` 把 `qp` 仓库加进授权范围）。
-4. 选中 `JinyouMate/qp`，点 **Begin setup**。
+4. 选中 `JinyouData/qp`，点 **Begin setup**。
 5. Project name 填 `qipei-web`（会生成 `qipei-web.pages.dev`），Production branch 选 `main`。
 
 ### 2.2 构建设置（照抄，一项都别改）

@@ -3,7 +3,7 @@ import path from "node:path";
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/seo";
-import { getAllInsights } from "@/lib/insights";
+import { getAllInsights, getInsightTotalPages } from "@/lib/insights";
 import { getAllCaseStudySlugs, getCaseTotalPages } from "@/lib/case-studies";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 
@@ -26,6 +26,9 @@ const DYNAMIC_SOURCES: Record<string, () => string[]> = {
   // 案例库分页：第 1 页由 /cases 承担，这里展开 2..total，供爬虫逐页发现
   "/cases/page/[page]": () =>
     Array.from({ length: Math.max(0, getCaseTotalPages() - 1) }, (_, i) => String(i + 2)),
+  // 深度观察分页：第 1 页由 /cases 的 Tab 承担，这里展开 2..total
+  "/insights/page/[page]": () =>
+    Array.from({ length: Math.max(0, getInsightTotalPages() - 1) }, (_, i) => String(i + 2)),
   // 注：page/1 的 canonical 指回 /cases，故不在 sitemap 重复登记
 };
 
@@ -97,6 +100,8 @@ function priorityOf(route: string): number {
   if (route === "/products" || route.startsWith("/products/") || route.startsWith("/tools/")) return 0.8;
   // 案例词条是 SEO 独立收录落地点，优先级高于普通内页
   if (route === "/cases" || route.startsWith("/cases/")) return 0.7;
+  // 深度观察分页与文章详情同为 SEO 收录重点
+  if (route.startsWith("/insights/")) return 0.7;
   return 0.5;
 }
 

@@ -53,6 +53,25 @@ export function getAllInsights(): Insight[] {
   return readAll();
 }
 
+/** 深度观察每页文章数（与案例库每页数量一致，便于两个 Tab 的 UI 对齐） */
+export const INSIGHTS_PER_PAGE = 6;
+
+/** 全部深度观察标签：{ tag, count }，按出现次数降序、同次数按名称排序 */
+export function getAllInsightTags(): Array<{ tag: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const item of readAll()) {
+    for (const tag of item.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return Array.from(counts, ([tag, count]) => ({ tag, count })).sort(
+    (a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "zh-CN")
+  );
+}
+
+/** 深度观察总页数（至少 1 页） */
+export function getInsightTotalPages(): number {
+  return Math.max(1, Math.ceil(readAll().length / INSIGHTS_PER_PAGE));
+}
+
 export function getInsightSlugs(): string[] {
   return readAll().map((i) => i.slug);
 }
