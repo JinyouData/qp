@@ -95,7 +95,8 @@ function oeProductSchema(entry: OeEntry) {
       name: `${f.brand} ${f.model} ${f.years}`.trim(),
       brand: { "@type": "Brand", name: f.brand },
       model: f.model,
-      vehicleModelDate: f.years,
+      // 真实索引不含年款，只有明确的 4 位年份才写入，避免非法 schema 值
+      ...(/^\d{4}(-\d{4})?$/.test(f.years) ? { vehicleModelDate: f.years } : {}),
     })),
     offers: {
       "@type": "AggregateOffer",
