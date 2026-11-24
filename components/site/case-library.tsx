@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowRight, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { Pagination } from "@/components/site/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CaseCardData } from "@/lib/case-studies";
@@ -217,62 +218,14 @@ export function CaseLibrary({
           </div>
         )}
 
-        {/* 分页：服务端静态链接，保证每一页都能被爬虫抓取 */}
-        {!active && totalPages > 1 && (
-          <nav className="mt-10 flex flex-col items-center gap-4" aria-label="案例分页">
-            <div className="flex items-center gap-2">
-              {currentPage > 1 ? (
-                <Link
-                  href={pageHref(currentPage - 1)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-                >
-                  <ChevronLeft className="h-4 w-4" /> 上一页
-                </Link>
-              ) : (
-                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
-                  <ChevronLeft className="h-4 w-4" /> 上一页
-                </span>
-              )}
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <Link
-                  key={p}
-                  href={pageHref(p)}
-                  aria-current={p === currentPage ? "page" : undefined}
-                  className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border text-sm ${
-                    p === currentPage
-                      ? "border-brand-green bg-brand-green text-white"
-                      : "text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-                  }`}
-                >
-                  {p}
-                </Link>
-              ))}
-
-              {currentPage < totalPages ? (
-                <Link
-                  href={pageHref(currentPage + 1)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-                >
-                  下一页 <ChevronRight className="h-4 w-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
-                  下一页 <ChevronRight className="h-4 w-4" />
-                </span>
-              )}
-            </div>
-
-            {/* 加载更多：指向下一页的静态链接，既是连续浏览体验，也可被抓取 */}
-            {currentPage < totalPages && (
-              <Link
-                href={pageHref(currentPage + 1)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/60 px-6 text-sm font-semibold text-brand-green hover:bg-brand-green-soft"
-              >
-                加载更多案例 <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
-          </nav>
+        {/* 分页：服务端静态链接，保证每一页都能被爬虫抓取；移动端收缩为单行 */}
+        {!active && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageHref={pageHref}
+            label="案例分页"
+          />
         )}
       </div>
     </section>

@@ -192,7 +192,7 @@ export function getAllOeEntries(): OeEntry[] {
   return readAll();
 }
 
-/** 索引页每页展示的 OE 词条数：与客户案例库保持一致（每页 6 条） */
+/** 每页展示的 OE 词条数：与客户案例库 CASES_PER_PAGE 保持一致 */
 export const OE_PER_PAGE = 6;
 
 export function getOeTotalPages(): number {
