@@ -114,7 +114,9 @@ export function middleware(request: NextRequest) {
   // - /oe/[oe_code] 词条详情页仍需保留（Tab 内卡片链接指向它），故只精确匹配列表路由
   if (pathname === "/oe" || /^\/oe\/page\/\d+\/?$/.test(pathname)) {
     const target = request.nextUrl.clone();
-    target.pathname = pathname === "/oe" ? "/cases" : pathname.replace(/^\/oe\//, "/cases/");
+    // /oe/page/N 是 OE Tab 的分页，必须跳到 /cases/oe/page/N，
+    // 不能简单替换成 /cases/page/N（那是客户案例库的分页）。
+    target.pathname = pathname === "/oe" ? "/cases" : pathname.replace(/^\/oe\//, "/cases/oe/");
     return withSecurityHeaders(NextResponse.redirect(target, 301));
   }
   // /cases/oe 本身没有页面（只有 /cases/oe/page/N 分页），避免被误当作案例 slug
