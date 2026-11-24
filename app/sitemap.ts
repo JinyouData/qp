@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/seo";
 import { getAllInsights, getInsightTotalPages } from "@/lib/insights";
-import { getAllOeCodes } from "@/lib/oe-catalog";
+import { getAllOeCodes, getOeTotalPages } from "@/lib/oe-catalog";
 import { getAllCaseStudySlugs, getCaseTotalPages } from "@/lib/case-studies";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 
@@ -30,9 +30,12 @@ const DYNAMIC_SOURCES: Record<string, () => string[]> = {
   // 深度观察分页：第 1 页由 /cases 的 Tab 承担，这里展开 2..total
   "/insights/page/[page]": () =>
     Array.from({ length: Math.max(0, getInsightTotalPages() - 1) }, (_, i) => String(i + 2)),
-  // OE 号词条：每个 content/oe/*.mdx 生成一个可索引页面
+  // OE 号词条：真实精选 JSON + MDX 人工词条生成独立可索引页面
   "/oe/[oe_code]": () => getAllOeCodes(),
-  // 注：page/1 的 canonical 指回 /cases，故不在 sitemap 重复登记
+  // OE 索引分页：第 1 页由 /oe 承担，这里展开 2..total，供爬虫逐页发现
+  "/oe/page/[page]": () =>
+    Array.from({ length: Math.max(0, getOeTotalPages() - 1) }, (_, i) => String(i + 2)),
+  // 注：page/1 的 canonical 指回主列表页，故不在 sitemap 重复登记
 };
 
 interface DiscoveredRoute {

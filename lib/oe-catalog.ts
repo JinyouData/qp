@@ -191,3 +191,10 @@ export function getOeEntry(code: string): OeEntry | null {
 export function getAllOeEntries(): OeEntry[] {
   return readAll();
 }
+
+/** 索引页每页展示的 OE 词条数：控制单页 HTML 体积（500+ 条全量渲染约 1MB） */
+export const OE_PER_PAGE = 24;
+
+export function getOeTotalPages(): number {
+  return Math.max(1, Math.ceil(readAll().length / OE_PER_PAGE));
+}
