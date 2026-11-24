@@ -32,8 +32,9 @@ const DYNAMIC_SOURCES: Record<string, () => string[]> = {
     Array.from({ length: Math.max(0, getInsightTotalPages() - 1) }, (_, i) => String(i + 2)),
   // OE 号词条：真实精选 JSON + MDX 人工词条生成独立可索引页面
   "/oe/[oe_code]": () => getAllOeCodes(),
-  // OE 索引分页：第 1 页由 /oe 承担，这里展开 2..total，供爬虫逐页发现
-  "/oe/page/[page]": () =>
+  // OE 号词条库 Tab 分页：已并入 /cases 顶部第三个 Tab，第 1 页由 /cases 承担，
+  // 这里展开 2..total；旧 /oe/page/N 由 middleware 301 到此，不再单独登记
+  "/cases/oe/page/[page]": () =>
     Array.from({ length: Math.max(0, getOeTotalPages() - 1) }, (_, i) => String(i + 2)),
   // 注：page/1 的 canonical 指回主列表页，故不在 sitemap 重复登记
 };
@@ -80,7 +81,7 @@ function allIndexableRoutes(): string[] {
   const urls = new Set<string>();
 
   // 已 301 到 /cases 的旧入口不进 sitemap（避免把权重导向跳转页）
-  const REDIRECTED_TO_CASES = new Set<string>(["/content", "/insights"]);
+  const REDIRECTED_TO_CASES = new Set<string>(["/content", "/insights", "/oe"]);
 
   for (const { route, noindex } of discoverRoutes()) {
     if (noindex || REDIRECTED_TO_CASES.has(route)) continue;

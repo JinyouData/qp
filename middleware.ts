@@ -109,6 +109,21 @@ export function middleware(request: NextRequest) {
 
   // /cases 已升级为按标签聚合的案例库列表页，/cases/[slug] 为案例详情页，均正常放行。
 
+  // OE 号词条库已并入 /cases 顶部「OE 号词条库」Tab：
+  // - /oe 与 /oe/page/N 是列表页，301 跳到 /cases 与 /cases/oe/page/N（保住已有收录权重）
+  // - /oe/[oe_code] 词条详情页仍需保留（Tab 内卡片链接指向它），故只精确匹配列表路由
+  if (pathname === "/oe" || /^\/oe\/page\/\d+\/?$/.test(pathname)) {
+    const target = request.nextUrl.clone();
+    target.pathname = pathname === "/oe" ? "/cases" : pathname.replace(/^\/oe\//, "/cases/");
+    return withSecurityHeaders(NextResponse.redirect(target, 301));
+  }
+  // /cases/oe 本身没有页面（只有 /cases/oe/page/N 分页），避免被误当作案例 slug
+  if (pathname === "/cases/oe" || pathname === "/cases/oe/") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/cases";
+    return withSecurityHeaders(NextResponse.redirect(target, 301));
+  }
+
   const key = Object.keys(RETIRED).find(
     (k) => pathname === k || pathname.startsWith(`${k}/`)
   );

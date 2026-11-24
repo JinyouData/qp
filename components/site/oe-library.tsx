@@ -8,7 +8,7 @@ import type { OeEntry } from "@/lib/oe-catalog";
    OE 号词条库列表（Server Component）
 
    - 词条由服务端按页切片后传入，每页都是独立静态 HTML，可被爬虫抓取
-   - 统计行 + 卡片网格 + 分页导航；第 1 页固定为 /oe，其余为 /oe/page/N
+   - 统计行 + 卡片网格 + 分页导航；第 1 页固定为 basePath，其余为 pageBase/N
    - 无客户端状态，纯静态链接，保持 SEO 友好
    ============================================================ */
 
@@ -17,13 +17,19 @@ export function OeLibrary({
   totalCount,
   currentPage,
   totalPages,
+  pageBase,
+  basePath = "/oe",
 }: {
   pageEntries: OeEntry[];
   totalCount: number;
   currentPage: number;
   totalPages: number;
+  /** 分页链接基础路径，如 /cases/oe/page/；第 1 页固定为 basePath */
+  pageBase: string;
+  /** 第 1 页地址，独立 OE 页为 /oe，作为 Tab 时为 /cases */
+  basePath?: string;
 }) {
-  const pageHref = (p: number) => (p === 1 ? "/oe" : `/oe/page/${p}`);
+  const pageHref = (p: number) => (p === 1 ? basePath : `${pageBase}${p}`);
 
   return (
     <section className="section-pad">

@@ -1,7 +1,8 @@
 import { CaseLibrary } from "@/components/site/case-library";
 import { CaseMetrics, TestimonialsStrip } from "@/components/site/case-results-strip";
 import { InsightsLibrary } from "@/components/site/insights-library";
-import { InsightsTabs } from "@/components/site/insights-tabs";
+import { InsightsTabs, type InsightTab } from "@/components/site/insights-tabs";
+import { OeLibrary } from "@/components/site/oe-library";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { PageHero } from "@/components/site/page-hero";
 import {
@@ -16,6 +17,11 @@ import {
   getInsightTotalPages,
   INSIGHTS_PER_PAGE,
 } from "@/lib/insights";
+import {
+  getAllOeEntries,
+  getOeTotalPages,
+  OE_PER_PAGE,
+} from "@/lib/oe-catalog";
 
 /* ============================================================
    案例库页面视图（Server Component）
@@ -29,12 +35,15 @@ import {
 export function CasePageView({
   page,
   insightsPage = 1,
+  oePage = 1,
   defaultTab = "cases",
 }: {
   page: number;
   /** 深度观察页码；默认第 1 页，与案例分页解耦 */
   insightsPage?: number;
-  defaultTab?: "cases" | "articles";
+  /** OE 号词条库页码；默认第 1 页，与案例/观察分页解耦 */
+  oePage?: number;
+  defaultTab?: InsightTab;
 }) {
   const allCases = getAllCaseCards();
   const tags = getAllTags();
@@ -54,6 +63,12 @@ export function CasePageView({
     (insightCurrent - 1) * INSIGHTS_PER_PAGE,
     insightCurrent * INSIGHTS_PER_PAGE
   );
+
+  // OE 号词条库与另外两个 Tab 共用同一页号体系，但页码各自独立
+  const allOe = getAllOeEntries();
+  const oeTotalPages = getOeTotalPages();
+  const oeCurrent = Math.min(Math.max(1, oePage), oeTotalPages);
+  const pageOe = allOe.slice((oeCurrent - 1) * OE_PER_PAGE, oeCurrent * OE_PER_PAGE);
 
   const breadcrumb =
     current === 1
@@ -100,6 +115,15 @@ export function CasePageView({
             currentPage={insightCurrent}
             totalPages={insightTotalPages}
             pageBase="/insights/page/"
+          />
+        }
+        oe={
+          <OeLibrary
+            pageEntries={pageOe}
+            totalCount={allOe.length}
+            currentPage={oeCurrent}
+            totalPages={oeTotalPages}
+            pageBase="/cases/oe/page/"
           />
         }
       />
