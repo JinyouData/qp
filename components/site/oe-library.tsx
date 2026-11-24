@@ -8,9 +8,24 @@ import type { OeEntry } from "@/lib/oe-catalog";
    OE 号词条库列表（Server Component）
 
    - 词条由服务端按页切片后传入，每页都是独立静态 HTML，可被爬虫抓取
-   - 统计行 + 卡片网格 + 分页导航；第 1 页固定为 basePath，其余为 pageBase/N
+   - 统计行 + 卡片网格 + 紧凑分页导航；第 1 页固定为 basePath
+   - 分页只显示「首尾页 + 当前页前后各 1 页」，中间用省略号收缩，
+     避免 84 页全平铺占满整屏（截图反馈：太影响观感）
    - 无客户端状态，纯静态链接，保持 SEO 友好
    ============================================================ */
+
+/** 生成收缩后的页码序列：1 … 5 6 7 … 84（数字或省略号） */
+function compactPages(current: number, total: number): Array<number | "…"> {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: Array<number | "…"> = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) pages.push("…");
+  for (let p = start; p <= end; p++) pages.push(p);
+  if (end < total - 1) pages.push("…");
+  pages.push(total);
+  return pages;
+}
 
 export function OeLibrary({
   pageEntries,
@@ -30,6 +45,7 @@ export function OeLibrary({
   basePath?: string;
 }) {
   const pageHref = (p: number) => (p === 1 ? basePath : `${pageBase}${p}`);
+  const pages = compactPages(currentPage, totalPages);
 
   return (
     <section className="section-pad">
@@ -70,27 +86,38 @@ export function OeLibrary({
         )}
 
         {totalPages > 1 && (
-          <nav className="mt-10 flex flex-col items-center gap-4" aria-label="OE 号词条分页">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {currentPage > 1 ? (
-                <Link
-                  href={pageHref(currentPage - 1)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-                >
-                  <ChevronLeft className="h-4 w-4" /> 上一页
-                </Link>
-              ) : (
-                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
-                  <ChevronLeft className="h-4 w-4" /> 上一页
-                </span>
-              )}
+          <nav
+            className="mt-8 flex flex-wrap items-center justify-center gap-1.5"
+            aria-label="OE 号词条分页"
+          >
+            {currentPage > 1 ? (
+              <Link
+                href={pageHref(currentPage - 1)}
+                className="inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-xs text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" /> 上一页
+              </Link>
+            ) : (
+              <span className="inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-xs text-muted-foreground/40">
+                <ChevronLeft className="h-3.5 w-3.5" /> 上一页
+              </span>
+            )}
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            {pages.map((p, i) =>
+              p === "…" ? (
+                <span
+                  key={`ellipsis-${i}`}
+                  className="inline-flex h-9 w-7 items-center justify-center text-xs text-muted-foreground/50"
+                  aria-hidden="true"
+                >
+                  …
+                </span>
+              ) : (
                 <Link
                   key={p}
                   href={pageHref(p)}
                   aria-current={p === currentPage ? "page" : undefined}
-                  className={`inline-flex h-11 min-w-11 items-center justify-center rounded-lg border px-2 text-sm ${
+                  className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-xs ${
                     p === currentPage
                       ? "border-brand-green bg-brand-green text-white"
                       : "text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
@@ -98,29 +125,20 @@ export function OeLibrary({
                 >
                   {p}
                 </Link>
-              ))}
+              )
+            )}
 
-              {currentPage < totalPages ? (
-                <Link
-                  href={pageHref(currentPage + 1)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
-                >
-                  下一页 <ChevronRight className="h-4 w-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-4 text-sm text-muted-foreground/40">
-                  下一页 <ChevronRight className="h-4 w-4" />
-                </span>
-              )}
-            </div>
-
-            {currentPage < totalPages && (
+            {currentPage < totalPages ? (
               <Link
                 href={pageHref(currentPage + 1)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green-soft/60 px-6 text-sm font-semibold text-brand-green hover:bg-brand-green-soft"
+                className="inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-xs text-muted-foreground hover:border-brand-green/50 hover:text-foreground"
               >
-                加载更多 OE 号 <ArrowRight className="h-4 w-4" />
+                下一页 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
+            ) : (
+              <span className="inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-xs text-muted-foreground/40">
+                下一页 <ChevronRight className="h-3.5 w-3.5" />
+              </span>
             )}
           </nav>
         )}

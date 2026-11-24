@@ -192,8 +192,8 @@ export function getAllOeEntries(): OeEntry[] {
   return readAll();
 }
 
-/** 索引页每页展示的 OE 词条数：控制单页 HTML 体积（500+ 条全量渲染约 1MB） */
-export const OE_PER_PAGE = 24;
+/** 索引页每页展示的 OE 词条数：与客户案例库保持一致（每页 6 条） */
+export const OE_PER_PAGE = 6;
 
 export function getOeTotalPages(): number {
   return Math.max(1, Math.ceil(readAll().length / OE_PER_PAGE));
