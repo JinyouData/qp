@@ -1,4 +1,5 @@
 import { getAllCaseStudies } from "@/lib/case-studies";
+import { getAllOeEntries } from "@/lib/oe-catalog";
 
 /* ============================================================
    llms.txt · 自动生成（GEO 核心文件）
@@ -25,6 +26,7 @@ const CORE_LINKS: Array<[string, string, string]> = [
   ["AI 核价助手", "/tools/ai-profit", "给定采购价与售价，如何测算跨境全成本毛利。"],
   ["AI 选品与竞品诊断助手", "/tools/ai-selection", "一个细分品类值不值得进，怎么打分判断。"],
   ["AI OE 码匹配与避坑助手", "/tools/ai-oe-match", "OE 号怎么查、适配关系怎么校验才不会装不上。"],
+  ["OE 号词条库", "/oe", "按 OE 号查询适配车型、黄金毛利带与跨境选品价值的结构化词条目录。"],
   ["AI 库存健康与清仓顾问", "/tools/ai-inventory", "滞销库存怎么分级、怎么分流清仓。"],
   ["联系主理人", "/contact", "如何获取完整数据资料与一对一诊断服务。"],
 ];
@@ -49,6 +51,19 @@ export function GET() {
     const summary = (c.solution || c.pain).slice(0, 64).replace(/\s+/g, " ");
     lines.push(
       `- [${c.title}](https://jinyoudata.com/cases/${c.slug})：${summary}｜标签：${c.tags.join("、")}`
+    );
+  }
+  lines.push("");
+
+  const oeEntries = getAllOeEntries();
+  lines.push(`# OE 号词条目录（共 ${oeEntries.length} 个，由 content/oe/*.mdx 自动生成）`);
+  lines.push("");
+  for (const e of oeEntries) {
+    const fitmentText = e.fitments
+      .map((f) => `${f.brand} ${f.model} ${f.years}`.trim())
+      .join("；");
+    lines.push(
+      `- [${e.oeCode} 适配车型与跨境利润分析](https://jinyoudata.com/oe/${e.oeCode})：${e.partName}｜黄金毛利带 ${e.goldenMargin}｜适配：${fitmentText}${e.isDemo ? "｜模板演示数据" : ""}`
     );
   }
   lines.push("");

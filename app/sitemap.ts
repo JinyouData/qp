@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/seo";
 import { getAllInsights, getInsightTotalPages } from "@/lib/insights";
+import { getAllOeCodes } from "@/lib/oe-catalog";
 import { getAllCaseStudySlugs, getCaseTotalPages } from "@/lib/case-studies";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 
@@ -29,6 +30,8 @@ const DYNAMIC_SOURCES: Record<string, () => string[]> = {
   // 深度观察分页：第 1 页由 /cases 的 Tab 承担，这里展开 2..total
   "/insights/page/[page]": () =>
     Array.from({ length: Math.max(0, getInsightTotalPages() - 1) }, (_, i) => String(i + 2)),
+  // OE 号词条：每个 content/oe/*.mdx 生成一个可索引页面
+  "/oe/[oe_code]": () => getAllOeCodes(),
   // 注：page/1 的 canonical 指回 /cases，故不在 sitemap 重复登记
 };
 
@@ -102,6 +105,8 @@ function priorityOf(route: string): number {
   if (route === "/cases" || route.startsWith("/cases/")) return 0.7;
   // 深度观察分页与文章详情同为 SEO 收录重点
   if (route.startsWith("/insights/")) return 0.7;
+  // OE 号词条是长尾精准搜索流量的独立落地点
+  if (route.startsWith("/oe/")) return 0.7;
   return 0.5;
 }
 
