@@ -124,6 +124,9 @@ export function CasePageView({
             currentPage={oeCurrent}
             totalPages={oeTotalPages}
             pageBase="/cases/oe/page/"
+            // 第 1 页用静态页 /cases/oe/page/1（canonical 回 /cases），
+            // 这样从 OE Tab 翻回第 1 页时不会丢失 Tab 选中状态
+            basePath="/cases/oe/page/1"
           />
         }
       />

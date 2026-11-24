@@ -19,7 +19,7 @@ export function OeLibrary({
   currentPage,
   totalPages,
   pageBase,
-  basePath = "/oe",
+  basePath = "/cases/oe/page/1",
 }: {
   pageEntries: OeEntry[];
   totalCount: number;

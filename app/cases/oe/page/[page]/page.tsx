@@ -30,7 +30,8 @@ export function generateMetadata({
   return buildMetadata({
     title: `OE 号词条库 · 第 ${page} 页`,
     description: `OE 号词条库第 ${page} 页，按 OE 号查询适配车型、黄金毛利带与跨境选品价值，含 AI 选品总结与结构化数据。`,
-    path: `/cases/oe/page/${page}`,
+    // 第 1 页内容与 /cases 相同，canonical 指回主列表页，避免重复收录
+    path: page === 1 ? "/cases" : `/cases/oe/page/${page}`,
     keywords: [KEYWORDS.oe, KEYWORDS.vin, KEYWORDS.data, "OE号词条"],
   });
 }
