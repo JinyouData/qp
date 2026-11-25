@@ -18,33 +18,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { WecomCtaButton } from "@/components/site/wecom-dialog";
 import { buildMetadata, CORE_KEYWORDS, SITE_URL } from "@/lib/seo";
-import { getAllOeCodes, getOeEntry, type OeEntry } from "@/lib/oe-catalog";
+import {
+  getHighFrequencyOeCodes,
+  getOeEntryAsync,
+  type OeEntry,
+} from "@/lib/oe-catalog";
 import { getCaseStudy } from "@/lib/case-studies";
 import { getInsight } from "@/lib/insights";
 
 /* ============================================================
-   OE 号词条页 /oe/[oe_code]
+   OE 号词条页 /oe/[oe_code] · ISR 混合架构
 
-   - 数据来自 content/oe/*.mdx（gray-matter，服务端读取）
-   - 每页独立静态 HTML（force-static + dynamicParams=false），
-     generateStaticParams 枚举全部 OE 号，新增 MDX 即自动扩产
+   - 构建期：generateStaticParams 只预渲染 data/oe-batch/ 的 100 个高频 OE
+   - 运行时：dynamicParams=true，未预渲染的 OE 首次访问时由 Edge 实时查
+     Supabase oe_entries 表生成，并经 Cloudflare Cache 缓存 24 小时
    - Product Schema 用 isAccessoryOrSparePartFor 承载适配车型
    - title 用 absolute 覆盖 layout template，严格符合指定格式
    ============================================================ */
 
-export const dynamic = "force-static";
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export function generateStaticParams() {
-  return getAllOeCodes().map((oe_code) => ({ oe_code }));
+  return getHighFrequencyOeCodes().map((oe_code) => ({ oe_code }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { oe_code: string };
-}): Metadata {
-  const entry = getOeEntry(params.oe_code);
+}): Promise<Metadata> {
+  const entry = await getOeEntryAsync(params.oe_code);
   if (!entry) return { title: "OE 号词条不存在" };
 
   const title = `${entry.oeCode} 适配什么车型？跨境利润怎么样？_金游数据智库`;
@@ -129,8 +133,8 @@ function relatedLinks(entry: OeEntry) {
     .filter((x): x is { slug: string; title: string; href: string; kind: string } => x !== null);
 }
 
-export default function OeCodePage({ params }: { params: { oe_code: string } }) {
-  const entry = getOeEntry(params.oe_code);
+export default async function OeCodePage({ params }: { params: { oe_code: string } }) {
+  const entry = await getOeEntryAsync(params.oe_code);
   if (!entry) notFound();
 
   const related = relatedLinks(entry);
@@ -173,7 +177,7 @@ export default function OeCodePage({ params }: { params: { oe_code: string } }) 
             </div>
 
             <h1 className="mt-4 break-all text-xl font-bold leading-tight sm:text-3xl">
-              {entry.oeCode} 适配车型与跨境利润分析
+              {entry.oeCode} 适配与跨境利润分析
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
               {entry.partName} · 黄金毛利带 {entry.goldenMargin} · {entry.market}

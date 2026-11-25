@@ -119,6 +119,41 @@ function splitFitment(text: string): OeFitment {
   };
 }
 
+/** 把 oe-index.json / oe_entries 表的原始行统一映射成页面所需结构 */
+function mapRawToEntry(x: FeaturedRaw): OeEntry {
+  const price = x.price_range ?? { min: 0, max: 0, avg: 0, currency: "CNY" };
+  const fitments = asStringArray(x.fitment_list).map(splitFitment);
+  const specificCount = asStringArray(x.fitment_list).filter((f) => !f.includes("全系")).length;
+  const span = Math.round((price.max - price.min) * 100) / 100;
+  const avg = Math.round(price.avg * 100) / 100;
+  const partName = asString(x.part_name, "汽配零件");
+  const margin = asString(x.margin_band, "按全成本模型测算");
+
+  const aiSummary = [
+    `${x.oe_code} 归属「${partName}」品类，底层库观测到的黄金毛利带为 ${margin}；` +
+      `价格区间 ¥${price.min}–¥${price.max}（均价 ¥${avg}，跨度 ¥${span}），` +
+      `说明该 OE 号在不同渠道间存在可观的价差空间。`,
+    `当前索引记录 ${specificCount} 个具体适配车型${fitments.length > specificCount ? `（另含 ${fitments.length - specificCount} 条全系泛化匹配）` : ""}，` +
+      `覆盖 ${new Set(fitments.map((f) => f.brand).filter((b) => b !== "待核")).size} 个品牌方向。` +
+      `上架前仍需按 OE 唯一性 → 年款一致性 → 渠道口径一致性三层校验，` +
+      `本页数据来自 312 万 SKU 底层库的统计口径，不构成真实适配声明。`,
+  ];
+
+  return {
+    oeCode: asString(x.oe_code),
+    partName,
+    category: asString((x as FeaturedRaw & { category?: string }).category, partName),
+    goldenMargin: margin,
+    market: "跨境与国内后市场",
+    sourceRegion: "国内供应链（312 万 SKU 底层库）",
+    retailReference: `底层库价格区间 ¥${price.min}–¥${price.max}，均价 ¥${avg}`,
+    isDemo: false,
+    fitments,
+    aiSummary,
+    relatedInsights: [],
+  } satisfies OeEntry;
+}
+
 function readFeaturedEntries(): OeEntry[] {
   if (!fs.existsSync(FEATURED_FILE)) return [];
   let parsed: { items?: FeaturedRaw[] };
@@ -128,40 +163,7 @@ function readFeaturedEntries(): OeEntry[] {
     return [];
   }
   const items = Array.isArray(parsed.items) ? parsed.items : [];
-
-  return items.map((x) => {
-    const price = x.price_range ?? { min: 0, max: 0, avg: 0, currency: "CNY" };
-    const fitments = asStringArray(x.fitment_list).map(splitFitment);
-    const specificCount = asStringArray(x.fitment_list).filter((f) => !f.includes("全系")).length;
-    const span = Math.round((price.max - price.min) * 100) / 100;
-    const avg = Math.round(price.avg * 100) / 100;
-    const partName = asString(x.part_name, "汽配零件");
-    const margin = asString(x.margin_band, "按全成本模型测算");
-
-    const aiSummary = [
-      `${x.oe_code} 归属「${partName}」品类，底层库观测到的黄金毛利带为 ${margin}；` +
-        `价格区间 ¥${price.min}–¥${price.max}（均价 ¥${avg}，跨度 ¥${span}），` +
-        `说明该 OE 号在不同渠道间存在可观的价差空间。`,
-      `当前索引记录 ${specificCount} 个具体适配车型${fitments.length > specificCount ? `（另含 ${fitments.length - specificCount} 条全系泛化匹配）` : ""}，` +
-        `覆盖 ${new Set(fitments.map((f) => f.brand).filter((b) => b !== "待核")).size} 个品牌方向。` +
-        `上架前仍需按 OE 唯一性 → 年款一致性 → 渠道口径一致性三层校验，` +
-        `本页数据来自 312 万 SKU 底层库的统计口径，不构成真实适配声明。`,
-    ];
-
-    return {
-      oeCode: asString(x.oe_code),
-      partName,
-      category: partName,
-      goldenMargin: margin,
-      market: "跨境与国内后市场",
-      sourceRegion: "国内供应链（312 万 SKU 底层库）",
-      retailReference: `底层库价格区间 ¥${price.min}–¥${price.max}，均价 ¥${avg}`,
-      isDemo: false,
-      fitments,
-      aiSummary,
-      relatedInsights: [],
-    } satisfies OeEntry;
-  });
+  return items.map(mapRawToEntry);
 }
 
 /* ---------------------- 合并与导出 ---------------------- */
@@ -197,4 +199,59 @@ export const OE_PER_PAGE = 6;
 
 export function getOeTotalPages(): number {
   return Math.max(1, Math.ceil(readAll().length / OE_PER_PAGE));
+}
+
+/* ============================================================
+   Supabase 实时查询（ISR 动态渲染数据源，Edge 兼容）
+
+   - 仅用 fetch，不依赖 node:fs；next-on-pages Edge 运行时可用
+   - 构建期预渲染的高频页走本地数据；其余 OE 号首次访问时
+     由本函数从 oe_entries 表实时查询，再由 Cloudflare Cache 缓存 24h
+   - 数据库不可达时自动降级到本地精选数据，保证页面不 500
+   ============================================================ */
+
+const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+/** 读取高频 OE 号批次（构建期 generateStaticParams 使用，node:fs 仅在构建执行） */
+export function getHighFrequencyOeCodes(): string[] {
+  const file = path.join(process.cwd(), "data", "oe-batch", "high-frequency.json");
+  if (!fs.existsSync(file)) return getAllOeCodes(); // 兜底：没有批次文件时退回全量
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as { oe_codes?: string[] };
+    const codes = Array.isArray(parsed.oe_codes) ? parsed.oe_codes.filter(Boolean) : [];
+    return codes.length > 0 ? codes : getAllOeCodes();
+  } catch {
+    return getAllOeCodes();
+  }
+}
+
+/** 从 Supabase 按 OE 号查询；失败返回 null，由调用方降级 */
+export async function getOeEntryFromSupabase(code: string): Promise<OeEntry | null> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/oe_entries?oe_code=eq.${encodeURIComponent(code)}&select=*&limit=1`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "User-Agent": "oe-isr/1.0",
+      },
+      signal: AbortSignal.timeout(8000),
+      cache: "no-store", // 缓存交给 Cloudflare Cache（revalidate），避免双层缓存不一致
+    });
+    if (!res.ok) return null;
+    const rows = (await res.json()) as FeaturedRaw[];
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return mapRawToEntry(rows[0]);
+  } catch {
+    return null;
+  }
+}
+
+/** 页面统一入口：Supabase 优先，本地兜底（构建期/降级用） */
+export async function getOeEntryAsync(code: string): Promise<OeEntry | null> {
+  const remote = await getOeEntryFromSupabase(code);
+  if (remote) return remote;
+  return getOeEntry(code) ?? null;
 }

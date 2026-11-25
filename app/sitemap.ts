@@ -83,8 +83,19 @@ function allIndexableRoutes(): string[] {
   // 已 301 到 /cases 的旧入口不进 sitemap（避免把权重导向跳转页）
   const REDIRECTED_TO_CASES = new Set<string>(["/content", "/insights", "/oe"]);
 
+  // OE 词条超过 5 万条时，改由 sitemap-oe-N.xml 分片承载，主 sitemap 不再展开
+  const oeIndexFile = path.join(process.cwd(), "public", "data", "oe-index.json");
+  let oeTooMany = false;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(oeIndexFile, "utf8")) as { oe_count?: number };
+    oeTooMany = (parsed.oe_count ?? 0) > 50000;
+  } catch {
+    oeTooMany = false;
+  }
+
   for (const { route, noindex } of discoverRoutes()) {
     if (noindex || REDIRECTED_TO_CASES.has(route)) continue;
+    if (oeTooMany && route === "/oe/[oe_code]") continue;
     if (!DYNAMIC_SEGMENT.test(route)) {
       urls.add(route);
       continue;

@@ -6,7 +6,9 @@ import type { MetadataRoute } from "next";
  * 会覆盖 `*` 组，显式声明可避免将来有人误加针对某个 AI 爬虫的 Disallow。
  * Sitemap 必须是可直达的绝对路径，百度 / Google 才会按此地址读取。
  */
-const SITEMAP_URL = "https://jinyoudata.com/sitemap.xml";
+// 指向 sitemap 索引：当 OE 词条超过 5 万条时，索引会引用分片文件；
+// 未超过时索引只包含主 sitemap.xml，搜索引擎行为与之前一致。
+const SITEMAP_URL = "https://jinyoudata.com/sitemap-index.xml";
 
 /** 主流生成式引擎 / AI 搜索爬虫：全部明确放行 */
 const AI_CRAWLERS = [
