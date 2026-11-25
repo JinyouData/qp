@@ -18,13 +18,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { JsonLd, breadcrumbSchema } from "@/components/site/json-ld";
 import { WecomCtaButton } from "@/components/site/wecom-dialog";
 import { buildMetadata, CORE_KEYWORDS, SITE_URL } from "@/lib/seo";
-import {
-  getHighFrequencyOeCodes,
-  getOeEntryAsync,
-  type OeEntry,
-} from "@/lib/oe-catalog";
-import { getCaseStudy } from "@/lib/case-studies";
-import { getInsight } from "@/lib/insights";
+import { getOeEntryAsync, type OeEntry } from "@/lib/oe-catalog-edge";
+// 静态导入高频批次：Edge 路由里不能用 node:fs 扫描目录，
+// 中控台更新批次时由 CI 脚本同步写入此 JSON。
+import highFrequency from "@/data/oe-batch/high-frequency.json";
+// 注意：本页运行在 Edge Runtime，禁止引入任何依赖 node:fs 的模块
+// （如 lib/insights.ts / lib/case-studies.ts / lib/oe-catalog.ts 的同步读取函数）。
 
 /* ============================================================
    OE 号词条页 /oe/[oe_code] · ISR 混合架构
@@ -36,12 +35,12 @@ import { getInsight } from "@/lib/insights";
    - title 用 absolute 覆盖 layout template，严格符合指定格式
    ============================================================ */
 
-// 诊断：暂时移除 ISR 配置，确认 next-on-pages 构建失败是否由 ISR 引起
-// export const dynamicParams = true;
-// export const revalidate = 86400;
+export const runtime = "edge";
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export function generateStaticParams() {
-  return getHighFrequencyOeCodes().map((oe_code) => ({ oe_code }));
+  return highFrequency.oe_codes.map((oe_code) => ({ oe_code }));
 }
 
 export async function generateMetadata({
@@ -117,28 +116,9 @@ function oeProductSchema(entry: OeEntry) {
   };
 }
 
-/** 相关行业洞察：同时查深度观察与案例库，按配置顺序展示 */
-function relatedLinks(entry: OeEntry) {
-  return entry.relatedInsights
-    .map((slug) => {
-      const insight = getInsight(slug);
-      if (insight) {
-        return { slug, title: insight.meta.title, href: `/insights/${slug}`, kind: "深度观察" };
-      }
-      const study = getCaseStudy(slug);
-      if (study) {
-        return { slug, title: study.title, href: `/cases/${slug}`, kind: "客户案例" };
-      }
-      return null;
-    })
-    .filter((x): x is { slug: string; title: string; href: string; kind: string } => x !== null);
-}
-
 export default async function OeCodePage({ params }: { params: { oe_code: string } }) {
   const entry = await getOeEntryAsync(params.oe_code);
   if (!entry) notFound();
-
-  const related = relatedLinks(entry);
 
   return (
     <>
@@ -303,27 +283,27 @@ export default async function OeCodePage({ params }: { params: { oe_code: string
       {/* 相关行业洞察 + 留资 */}
       <section className="section-pad bg-brand-cream">
         <div className="container-site">
-          <h2 className="text-xl font-bold sm:text-2xl">该 OE 号的相关行业洞察</h2>
-          {related.length > 0 ? (
-            <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((r) => (
-                <li key={r.slug}>
-                  <Link
-                    href={r.href}
-                    className="card-hover flex h-full items-start justify-between gap-3 rounded-lg border bg-card p-4 text-sm font-semibold leading-snug hover:text-primary"
-                  >
-                    <span>
-                      <span className="mr-2 text-[11px] font-normal text-muted-foreground">{r.kind}</span>
-                      {r.title}
-                    </span>
-                    <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">暂无关联洞察，持续更新中。</p>
-          )}
+          <h2 className="text-xl font-bold sm:text-2xl">延伸阅读：选品与利润洞察</h2>
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            <li>
+              <Link
+                href="/insights"
+                className="card-hover flex h-full items-start justify-between gap-3 rounded-lg border bg-card p-4 text-sm font-semibold leading-snug hover:text-primary"
+              >
+                <span>智库深度观察 · 选品方法论与利润模型</span>
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/cases"
+                className="card-hover flex h-full items-start justify-between gap-3 rounded-lg border bg-card p-4 text-sm font-semibold leading-snug hover:text-primary"
+              >
+                <span>客户案例库 · 真实选品与盈利复盘</span>
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
+              </Link>
+            </li>
+          </ul>
 
           <div className="mt-8 flex flex-wrap items-center gap-4 rounded-lg border bg-card p-5">
             <div className="mr-auto">

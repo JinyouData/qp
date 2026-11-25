@@ -46,9 +46,11 @@ export function generateStaticParams() {
 export async function GET({
   params,
 }: {
-  params: { page: string };
+  params?: { page?: string };
 }) {
-  const page = Math.max(1, Number(params.page) || 1);
+  // 构建期预渲染时 Next.js 14 可能不传 params（generateStaticParams 场景），
+  // 此时默认渲染第 1 页；运行时由路由正常注入具体页码。
+  const page = Math.max(1, Number(params?.page) || 1);
   const codes = loadAllOeCodesSync();
   const slice = codes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const now = new Date().toISOString();
