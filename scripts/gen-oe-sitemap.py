@@ -8,6 +8,7 @@
 """
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +39,7 @@ def main() -> None:
     for old in OUT_DIR.glob("sitemap-oe-*.xml"):
         old.unlink()
 
-    now = "2026-11-25"
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for i in range(pages):
         slice_codes = codes[i * PAGE_SIZE : (i + 1) * PAGE_SIZE]
         lines = [
