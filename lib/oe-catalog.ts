@@ -207,23 +207,55 @@ export function getOeTotalPages(): number {
    - 仅用 fetch，不依赖 node:fs；next-on-pages Edge 运行时可用
    - 构建期预渲染的高频页走本地数据；其余 OE 号首次访问时
      由本函数从 oe_entries 表实时查询，再由 Cloudflare Cache 缓存 24h
-   - 数据库不可达时自动降级到本地精选数据，保证页面不 500
+   - 运行时不降级到 node:fs；仅构建期用本地数据兜底，保证预渲染页不 404
    ============================================================ */
 
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
-/** 读取高频 OE 号批次（构建期 generateStaticParams 使用，node:fs 仅在构建执行） */
+/**
+ * 读取高频 OE 号批次（构建期 generateStaticParams 使用，node:fs 仅在构建执行）。
+ *
+ * 兼容两种批次格式，确保中控台每日推送的批次都能自动成为预渲染候选：
+ *   1) 手工批次 high-frequency.json：{ oe_codes: string[] }
+ *   2) AI 内容工厂批次 *.json：{ items: [{ oe_code, ... }] }
+ *
+ * 合并后去重，按文件修改时间倒序（最新批次优先），最多返回 100 条。
+ */
 export function getHighFrequencyOeCodes(): string[] {
-  const file = path.join(process.cwd(), "data", "oe-batch", "high-frequency.json");
-  if (!fs.existsSync(file)) return getAllOeCodes(); // 兜底：没有批次文件时退回全量
+  const dir = path.join(process.cwd(), "data", "oe-batch");
+  if (!fs.existsSync(dir)) return getAllOeCodes(); // 兜底：没有批次目录时退回全量
+
+  const codes: string[] = [];
   try {
-    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as { oe_codes?: string[] };
-    const codes = Array.isArray(parsed.oe_codes) ? parsed.oe_codes.filter(Boolean) : [];
-    return codes.length > 0 ? codes : getAllOeCodes();
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => ({ file: path.join(dir, f), mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime); // 最新批次优先
+
+    for (const { file } of files) {
+      const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as {
+        oe_codes?: string[];
+        items?: Array<{ oe_code?: string }>;
+      };
+      if (Array.isArray(parsed.oe_codes)) {
+        codes.push(...parsed.oe_codes.filter((x): x is string => typeof x === "string" && !!x));
+      }
+      if (Array.isArray(parsed.items)) {
+        codes.push(
+          ...parsed.items
+            .map((x) => x?.oe_code)
+            .filter((x): x is string => typeof x === "string" && !!x),
+        );
+      }
+    }
   } catch {
     return getAllOeCodes();
   }
+
+  const unique = Array.from(new Set(codes));
+  return unique.length > 0 ? unique.slice(0, 100) : getAllOeCodes();
 }
 
 /** 从 Supabase 按 OE 号查询；失败返回 null，由调用方降级 */
