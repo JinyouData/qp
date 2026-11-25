@@ -57,6 +57,10 @@ jobs:
         if: steps.creds.outputs.ready == 'true'
         run: npm ci
 
+      - name: Generate OE sitemap shards
+        if: steps.creds.outputs.ready == 'true'
+        run: python3 scripts/gen-oe-sitemap.py
+
       - name: Build for Pages (next-on-pages)
         if: steps.creds.outputs.ready == 'true'
         run: npm run pages:build
