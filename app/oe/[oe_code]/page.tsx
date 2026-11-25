@@ -36,8 +36,9 @@ import { getInsight } from "@/lib/insights";
    - title 用 absolute 覆盖 layout template，严格符合指定格式
    ============================================================ */
 
-export const dynamicParams = true;
-export const revalidate = 86400;
+// 诊断：暂时移除 ISR 配置，确认 next-on-pages 构建失败是否由 ISR 引起
+// export const dynamicParams = true;
+// export const revalidate = 86400;
 
 export function generateStaticParams() {
   return getHighFrequencyOeCodes().map((oe_code) => ({ oe_code }));
