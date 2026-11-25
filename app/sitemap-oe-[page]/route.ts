@@ -14,70 +14,33 @@ export const dynamic = "force-static";
 const SITE_URL = "https://jinyoudata.com";
 const PAGE_SIZE = 10000;
 
-interface OeRow {
-  oe_code: string;
-}
+/* OE 号 sitemap 分片在构建期静态生成。
+ * 数据源固定为本地 public/data/oe-index.json：
+ * - 构建期用 Supabase 网络请求拉取 12.3 万条 × 13 个分片会超时，且 next-on-pages
+ *   构建阶段不适合做大规模 API 调用；
+ * - sitemap 允许「下次构建更新」，增量词条由详情页 ISR 覆盖即可。
+ */
+let cachedCodes: string[] | null = null;
 
-/** 构建期从 Supabase 拉取全部 oe_code；失败则读本地索引兜底 */
-async function loadAllOeCodes(): Promise<string[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key) {
-    try {
-      const res = await fetch(
-        `${url}/rest/v1/oe_entries?select=oe_code&order=oe_code.asc`,
-        {
-          headers: {
-            apikey: key,
-            Authorization: `Bearer ${key}`,
-            "User-Agent": "sitemap-oe/1.0",
-          },
-          signal: AbortSignal.timeout(15000),
-          cache: "no-store",
-        }
-      );
-      if (res.ok) {
-        const rows = (await res.json()) as OeRow[];
-        if (Array.isArray(rows) && rows.length > 0) {
-          return rows.map((r) => r.oe_code).filter(Boolean);
-        }
-      }
-    } catch {
-      // 降级到本地索引
-    }
-  }
-
+function loadAllOeCodesSync(): string[] {
+  if (cachedCodes) return cachedCodes;
   const file = path.join(process.cwd(), "public", "data", "oe-index.json");
-  if (!fs.existsSync(file)) return [];
+  if (!fs.existsSync(file)) return (cachedCodes = []);
   try {
     const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as {
       items?: Array<{ oe_code: string }>;
     };
-    return (parsed.items ?? []).map((x) => x.oe_code).filter(Boolean);
+    cachedCodes = (parsed.items ?? []).map((x) => x.oe_code).filter(Boolean);
+    return cachedCodes;
   } catch {
-    return [];
+    return (cachedCodes = []);
   }
 }
 
 export function generateStaticParams() {
-  // 先按本地索引估算总页数，保证构建期有静态路径可预生成；
-  // 运行时若 Supabase 数据更多，超出范围的页码会 404（下次构建补齐）。
   const local = loadAllOeCodesSync();
   const pages = Math.max(1, Math.ceil(local.length / PAGE_SIZE));
   return Array.from({ length: pages }, (_, i) => ({ page: String(i + 1) }));
-}
-
-function loadAllOeCodesSync(): string[] {
-  const file = path.join(process.cwd(), "public", "data", "oe-index.json");
-  if (!fs.existsSync(file)) return [];
-  try {
-    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as {
-      items?: Array<{ oe_code: string }>;
-    };
-    return (parsed.items ?? []).map((x) => x.oe_code).filter(Boolean);
-  } catch {
-    return [];
-  }
 }
 
 export async function GET({
@@ -86,7 +49,7 @@ export async function GET({
   params: { page: string };
 }) {
   const page = Math.max(1, Number(params.page) || 1);
-  const codes = await loadAllOeCodes();
+  const codes = loadAllOeCodesSync();
   const slice = codes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const now = new Date().toISOString();
 
