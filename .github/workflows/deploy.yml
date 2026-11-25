@@ -18,6 +18,9 @@ env:
   # NEXT_PUBLIC_* 会在构建时被内联，必须在构建环境里给出（都是公开值）
   NEXT_PUBLIC_SUPABASE_URL: https://cgtprzxltdlibgqkfgbf.supabase.co
   NEXT_PUBLIC_SITE_URL: https://jinyoudata.com
+  # OE 词条 ISR 动态渲染：构建期内联到 Edge Worker，未预渲染页面靠它查 oe_entries 表。
+  # 需在仓库 Settings > Secrets and variables > Actions 中配置 SUPABASE_SERVICE_ROLE_KEY。
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
 jobs:
   deploy:
