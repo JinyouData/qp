@@ -25,7 +25,14 @@ create index if not exists oe_entries_updated_at_idx on public.oe_entries (updat
 
 alter table public.oe_entries enable row level security;
 
--- 只允许 service_role 读写；前端不直接连库，统一走服务端
+-- 读：anon / authenticated 均可 SELECT（官网 ISR 动态页用 anon key 查库）
+drop policy if exists "oe_entries_anon_select" on public.oe_entries;
+create policy "oe_entries_anon_select" on public.oe_entries
+  for select
+  to anon, authenticated
+  using (true);
+
+-- 写：仅 service_role，批量导入与后续中控台更新用
 drop policy if exists "oe_entries_service_all" on public.oe_entries;
 create policy "oe_entries_service_all" on public.oe_entries
   for all

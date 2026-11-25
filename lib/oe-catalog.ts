@@ -249,9 +249,22 @@ export async function getOeEntryFromSupabase(code: string): Promise<OeEntry | nu
   }
 }
 
-/** 页面统一入口：Supabase 优先，本地兜底（构建期/降级用） */
+/**
+ * 页面统一入口。
+ *
+ * 运行时（Edge）：严格只走 Supabase REST API，绝不触碰 node:fs。
+ * 构建期（phase-production-build）：Supabase 不可达时用本地数据兜底，
+ * 保证 100 个预渲染高频页不会因为数据库未就绪而变成 404。
+ *
+ * 两条路径通过 NEXT_PHASE 严格隔离，运行时的动态页面没有 fs 回退。
+ */
 export async function getOeEntryAsync(code: string): Promise<OeEntry | null> {
   const remote = await getOeEntryFromSupabase(code);
   if (remote) return remote;
-  return getOeEntry(code) ?? null;
+
+  // 仅构建阶段允许本地兜底；Edge 运行时 process.env.NEXT_PHASE 不存在
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return getOeEntry(code) ?? null;
+  }
+  return null;
 }
