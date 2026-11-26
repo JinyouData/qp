@@ -27,6 +27,8 @@ const EVENTS = [
   "asset_download",
   "consult_click",
   "ai_chat_open",
+  "oe_search",      // 高意向雷达：查看 / 检索 OE 号词条
+  "ai_question",    // 高意向雷达：AI 提问（服务端主写，前端保留兼容）
   "ladder_click",
 ] as const;
 
@@ -49,6 +51,8 @@ const PageViewSchema = z.object({
   utm_campaign: z.string().max(80).nullish(),
   visitor_id: z.string().max(64).nullish(),
   device: z.string().max(20).nullish(),
+  /** 深度动作（OE 搜索词等），0015 迁移前会被自动裁剪，不影响主流程 */
+  action_detail: z.record(z.union([z.string(), z.number(), z.boolean()])).nullish(),
   ts: z.string().max(40).nullish(),
 });
 
@@ -98,11 +102,11 @@ const MISSING_COL_RE =
   /(?:column\s+"?([a-z_][a-z0-9_]*)"?\s+of\s+relation|Could not find the '([a-z_][a-z0-9_]*)' column)/i;
 
 /** 裁剪优先级：与 UV 无关的先砍，visitor_id 最后才放弃（它是 UV 的唯一依据） */
-const DROP_ORDER = ["utm_medium", "utm_campaign", "device", "source", "visitor_id"] as const;
+const DROP_ORDER = ["action_detail", "utm_medium", "utm_campaign", "device", "source", "visitor_id"] as const;
 /** 0010 时代就有的四列，任何情况下都不再裁掉 */
 const CORE_KEYS: ReadonlySet<string> = new Set(["path", "referrer", "utm_source", "created_at"]);
 
-type PVRow = Record<string, string | null>;
+type PVRow = Record<string, string | null | Record<string, string>>;
 
 function missingColumn(message: string): string | null {
   const m = MISSING_COL_RE.exec(message);
@@ -173,6 +177,15 @@ export async function POST(req: Request) {
 
     // created_at 一律用服务端时钟：前端 ts 会被浏览器时区或手工探针带偏，
     // 而「今日」是 UTC+8 半开区间，时间来源必须统一可信。
+    // 深度动作只保留短键与干净字符串，避免把整段提问原文塞进 JSONB
+    const actionDetail: Record<string, string> | null = d.action_detail
+      ? Object.fromEntries(
+          Object.entries(d.action_detail)
+            .filter(([, v]) => v !== null && v !== undefined)
+            .map(([k, v]) => [k.slice(0, 24), String(v).replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 200)])
+        )
+      : null;
+
     const full: PVRow = {
       path: clean(d.path, 300) ?? "/",
       referrer,
@@ -181,6 +194,7 @@ export async function POST(req: Request) {
       utm_campaign: clean(d.utm_campaign, 80),
       visitor_id: clean(d.visitor_id, 64),
       device: clean(d.device, 20),
+      action_detail: actionDetail,
       source: classify(referrer, utmSource),
       created_at: new Date().toISOString(),
     };

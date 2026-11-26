@@ -7,10 +7,11 @@ import {
   formatCalcForPrompt,
   parseCalcInput,
 } from "@/lib/ai-profit";
-import { AI_TOOLS, type ToolType } from "@/lib/ai-tools";
+import { AI_TOOLS, todayKey, type ToolType } from "@/lib/ai-tools";
 import { SYSTEM_PROMPTS, demoReply, referenceFor } from "@/lib/ai-prompts";
 import { consumeTrial } from "@/lib/ai-chat-usage";
 import { desensitizePlatforms } from "@/lib/desensitize";
+import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 // Cloudflare Pages（next-on-pages）只支持 Edge Runtime
 export const runtime = "edge";
@@ -19,6 +20,8 @@ export const runtime = "edge";
 const BodySchema = z.object({
   message: z.string().min(1).max(1000),
   visitorId: z.string().min(4).max(64).regex(/^[A-Za-z0-9_-]+$/),
+  /** 雷达聚合主键：PV 用的是 jinyou_vid，可能与限流 ID 不同 */
+  radar_visitor_id: z.string().min(4).max(64).regex(/^[A-Za-z0-9_-]+$/).optional(),
   tool_type: z.enum(["profit", "selection", "oe-match", "inventory"]).default("profit"),
   /**
    * 前端 localStorage 里当天已用次数。只作为展示与即时拦截，
@@ -97,6 +100,28 @@ export async function POST(req: Request) {
 
   // 访客原话先脱敏：用户自己打了具体渠道名，也不让测算、模型与回复跟着复述
   const message = desensitizePlatforms(parsed.data.message);
+
+  // ---- 1b) 高意向雷达：AI 提问落 events（脱敏后的原文 + 统一访客 ID）----
+  // 提问是交互不是页面浏览，因此不写 page_views，避免把 PV 门槛刷高。
+  // 写库失败绝不影响回答链路。
+  try {
+    if (isSupabaseConfigured()) {
+      const db = getSupabaseAdmin();
+      if (db) {
+        await db.from("events").insert({
+          event: "ai_question",
+          props: {
+            visitor_id: parsed.data.radar_visitor_id ?? visitorId,
+            detail: message.slice(0, 300),
+            tool_type: toolType,
+            day: todayKey(),
+          },
+          path: "/api/ai-chat",
+          created_at: new Date().toISOString(),
+        });
+      }
+    }
+  } catch {}
 
   // ---- 2) 数字 / 评分 / 风险 / 折价全由代码算，模型只负责解释 ----
   const isProfit = tool === "profit";

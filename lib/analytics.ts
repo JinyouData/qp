@@ -8,6 +8,7 @@
    ============================================================ */
 
 import { getStoredUtm } from "./utm";
+import { radarVisitorId } from "./visitor-id";
 
 export type TrackEventName =
   | "form_submit" // 表单提交
@@ -16,6 +17,8 @@ export type TrackEventName =
   | "asset_download" // 资料下载/领取
   | "consult_click" // 历史咨询点击（保留兼容）
   | "ai_chat_open" // AI 问答打开
+  | "oe_search" // 查看 / 检索 OE 号词条（高意向雷达真源之一）
+  | "ai_question" // AI 提问（服务端主写，前端保留兼容）
   | "ladder_click"; // 产品阶梯点击
 
 /** 全站唯一的收口动作：联系主理人（弹窗打开即上报 wechat_click） */
@@ -50,9 +53,11 @@ export function trackEvent(name: TrackEventName, props: TrackProps = {}): void {
   // 3) 自己的库（供后台看板）
   try {
     const stored = getStoredUtm();
+    // 事件也带统一访客 ID：即使 action_detail 列还没迁移，雷达仍能从 events 兜底聚合
+    const unified = { ...payload, visitor_id: radarVisitorId() };
     const body = JSON.stringify({
       event: name,
-      props: payload,
+      props: unified,
       path: window.location.pathname,
       channel: stored.channel,
       referrer: stored.referrer ?? "",

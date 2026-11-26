@@ -11,6 +11,7 @@ import {
   type CalcResult,
 } from "@/lib/ai-profit";
 import { AI_TOOLS, todayKey, type ToolType } from "@/lib/ai-tools";
+import { radarVisitorId } from "@/lib/visitor-id";
 import { WecomDialog } from "./wecom-dialog";
 
 /* ============================================================
@@ -156,7 +157,14 @@ export function AiAssistantChat({ tool = "profit" }: { tool?: ToolType }) {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: q, visitorId: vid, used, tool_type: tool }),
+        // visitorId 仍是限流专用 jinyou_ai_vid，绝不改；radar_visitor_id 才是雷达聚合主键
+        body: JSON.stringify({
+          message: q,
+          visitorId: vid,
+          radar_visitor_id: radarVisitorId(),
+          used,
+          tool_type: tool,
+        }),
       });
       const data = await res.json();
 
