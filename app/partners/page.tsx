@@ -10,7 +10,7 @@ import { SectionHeading } from "@/components/site/section-heading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { WecomCtaCard } from "@/components/site/wecom-cta-card";
+import { PartnerContactCard } from "@/components/site/partner-contact-card";
 
 export const metadata: Metadata = buildMetadata({
   title: "数据与 AI 合作",
@@ -201,25 +201,12 @@ export default function PartnersPage() {
               </Card>
             ))}
           </div>
-          <div className="mt-8 text-center text-xs text-muted-foreground">
-            合作开通前，请先添加主理人企微，由项目负责人一对一对接。
-          </div>
         </div>
       </section>
 
-      {/* 商务合作专属 CTA：B 端调性，绝不复用首页 C 端卖课文案 */}
+      {/* 商务名片式联系区块：克制、无大按钮、无重复提示 */}
       <div id="contact">
-        <WecomCtaCard
-          title="寻找长期共赢的商务合作"
-          desc="如果您有成熟的 SaaS 产品、大模型语料需求，或渠道资源，欢迎直接联系主理人。"
-          badge="商务合作 · 长期共建"
-          buttonLabel="联系主理人洽谈合作"
-          footnote="扫码添加，备注“商务合作”，优先通过。"
-          qrNote="扫码添加，备注“商务合作”，优先通过。"
-          from="partners"
-          subject="商务合作洽谈（SaaS / AI 数据 / 渠道资源）"
-          showQr
-        />
+        <PartnerContactCard />
       </div>
     </>
   );
