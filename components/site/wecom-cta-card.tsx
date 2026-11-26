@@ -21,6 +21,7 @@ export function WecomCtaCard({
   badge = "一对一 · 企微直连",
   buttonLabel = "立即扫码添加主理人",
   footnote = "点击扫码，立即获取完整资料（备注官网优先通过）",
+  qrNote,
   from = "wecom-cta-card",
   subject,
   showQr = true,
@@ -31,6 +32,8 @@ export function WecomCtaCard({
   badge?: string;
   buttonLabel?: string;
   footnote?: string;
+  /** 二维码下方小字；不传则用全站默认（备注官网优先通过） */
+  qrNote?: string;
   /** 触发位置，用于埋点区分来源 */
   from?: string;
   /** 触发主体（页面名 / 产品名） */
@@ -65,7 +68,7 @@ export function WecomCtaCard({
                 className="h-40 w-40 rounded-lg object-contain md:h-44 md:w-44"
               />
               <p className="mt-2 text-xs text-muted-foreground">
-                微信扫一扫 · 备注「{WECOM.remark}」优先通过
+                {qrNote ?? `微信扫一扫 · 备注「${WECOM.remark}」优先通过`}
               </p>
             </div>
           )}
