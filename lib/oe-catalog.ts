@@ -5,21 +5,24 @@ import matter from "gray-matter";
 /* ============================================================
    OE 号词条数据层
 
-   两个来源，合并后供 /oe/[oe_code] 静态路由、/oe 索引页、
-   sitemap 与 llms.txt 使用：
+   三个来源，合并后供 /oe/[oe_code] 静态路由、OE 词条库 Tab、
+   sitemap 与 llms.txt 使用（优先级从低到高）：
 
-   1) content/oe/*.mdx —— 人工撰写的词条（含 95760-J9000 演示词条）。
-      文件名即 OE 号，frontmatter 字段见示例文件。优先级最高，
-      同名会被 MDX 覆盖，方便人工精修。
+   1) data/oe-batch/*.json —— 中控台推送的全量 OE 批次
+      （oe-initial.json 5000 条 + 每日增量），是词条库的主体数据。
+      兼容两种格式：{ items: [...] } 与 { oe_codes: string[] }。
 
    2) public/data/oe-featured.json —— 从 12.3 万条真实 OE 索引
-      （oe-index.json）按「毛利带优先 + 内容厚度 + 品类限额」挑选的
-      精选词条，由 scripts/gen-oe-featured.py 生成。真实数据不编造
-      年份，AI 总结按真实毛利/价格/适配数生成。
+      按「毛利带优先 + 内容厚度 + 品类限额」挑选的精选词条，
+      由 scripts/gen-oe-featured.py 生成。
+
+   3) content/oe/*.mdx —— 人工撰写的词条（含 95760-J9000 演示词条）。
+      优先级最高，同名覆盖，方便人工精修。
    ============================================================ */
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "oe");
 const FEATURED_FILE = path.join(process.cwd(), "public", "data", "oe-featured.json");
+const BATCH_DIR = path.join(process.cwd(), "data", "oe-batch");
 
 export interface OeFitment {
   brand: string;
@@ -166,16 +169,106 @@ function readFeaturedEntries(): OeEntry[] {
   return items.map(mapRawToEntry);
 }
 
+/* ---------------- 来源 3：中控台批次（词条库主体数据） ---------------- */
+
+interface BatchItem {
+  oe_code: string;
+  name?: string;
+  fitment_list?: string[];
+  margin?: string;
+  price_range?: [number, number] | { min: number; max: number; avg?: number };
+}
+
+/** 把中控台批次行映射成 OeEntry（字段结构与精选 JSON 不同，单独适配） */
+function mapBatchItemToEntry(x: BatchItem): OeEntry | null {
+  const code = asString(x.oe_code);
+  if (!code) return null;
+
+  let min = 0;
+  let max = 0;
+  if (Array.isArray(x.price_range)) {
+    [min, max] = x.price_range;
+  } else if (x.price_range && typeof x.price_range === "object") {
+    min = x.price_range.min ?? 0;
+    max = x.price_range.max ?? 0;
+  }
+  const avg = Math.round(((min + max) / 2) * 100) / 100;
+  const partName = asString(x.name, "汽配零件");
+  const margin = asString(x.margin, "按全成本模型测算");
+  const fitments = asStringArray(x.fitment_list).map(splitFitment);
+  const specificCount = asStringArray(x.fitment_list).filter((f) => !f.includes("全系")).length;
+
+  const aiSummary = [
+    `${code} 归属「${partName}」品类，中控台批次观测到的黄金毛利带为 ${margin}；` +
+      `建议价格区间 ¥${min}–¥${max}（中值 ¥${avg}），` +
+      `说明该 OE 号在不同渠道间存在可观的价差空间。`,
+    `当前批次记录 ${specificCount} 个具体适配车型` +
+      `（覆盖 ${new Set(fitments.map((f) => f.brand).filter((b) => b !== "待核")).size} 个品牌方向）。` +
+      `上架前仍需按 OE 唯一性 → 年款一致性 → 渠道口径一致性三层校验，` +
+      `本页数据来自 312 万 SKU 底层库的统计口径，不构成真实适配声明。`,
+  ];
+
+  return {
+    oeCode: code,
+    partName,
+    category: partName,
+    goldenMargin: margin,
+    market: "跨境与国内后市场",
+    sourceRegion: "国内供应链（312 万 SKU 底层库）",
+    retailReference: `中控台批次建议价 ¥${min}–¥${max}，中值 ¥${avg}`,
+    isDemo: false,
+    fitments,
+    aiSummary,
+    relatedInsights: [],
+  };
+}
+
+/** 遍历 data/oe-batch/ 下所有 JSON，合并中控台推送的初始批次与每日增量 */
+function readBatchEntries(): OeEntry[] {
+  if (!fs.existsSync(BATCH_DIR)) return [];
+  const byCode = new Map<string, OeEntry>();
+  try {
+    const files = fs.readdirSync(BATCH_DIR).filter((f) => f.endsWith(".json"));
+    for (const file of files) {
+      let parsed: { items?: BatchItem[]; oe_codes?: string[] };
+      try {
+        parsed = JSON.parse(fs.readFileSync(path.join(BATCH_DIR, file), "utf8"));
+      } catch {
+        continue; // 单个批次损坏不影响其他文件
+      }
+      if (Array.isArray(parsed.items)) {
+        for (const item of parsed.items) {
+          const entry = mapBatchItemToEntry(item);
+          if (entry && !byCode.has(entry.oeCode)) byCode.set(entry.oeCode, entry);
+        }
+      }
+      // 高频批次只有 oe_codes 数组，补全默认字段，保证总数正确
+      if (Array.isArray(parsed.oe_codes)) {
+        for (const code of parsed.oe_codes) {
+          if (typeof code !== "string" || !code.trim() || byCode.has(code)) continue;
+          const entry = mapBatchItemToEntry({ oe_code: code });
+          if (entry) byCode.set(entry.oeCode, entry);
+        }
+      }
+    }
+  } catch {
+    return [];
+  }
+  return Array.from(byCode.values());
+}
+
 /* ---------------------- 合并与导出 ---------------------- */
 
 let cached: OeEntry[] | null = null;
 
 function readAll(): OeEntry[] {
   if (cached) return cached;
+  // 优先级从低到高：批次 → 精选 → 人工 MDX（高优先级覆盖同 OE 号）
+  const batches = readBatchEntries();
   const featured = readFeaturedEntries();
   const mdx = readMdxEntries();
-  // MDX 优先：同 OE 号以人工撰写的版本覆盖精选数据
   const byCode = new Map<string, OeEntry>();
+  for (const e of batches) byCode.set(e.oeCode, e);
   for (const e of featured) byCode.set(e.oeCode, e);
   for (const e of mdx) byCode.set(e.oeCode, e);
   cached = Array.from(byCode.values()).sort((a, b) => a.oeCode.localeCompare(b.oeCode));
