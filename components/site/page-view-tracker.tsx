@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { getStoredUtm } from "@/lib/utm";
+import { getStoredRef, getStoredUtm } from "@/lib/utm";
 import { radarVisitorId } from "@/lib/visitor-id";
 import { trackEvent } from "@/lib/analytics";
 
@@ -104,7 +104,9 @@ export function PageViewTracker() {
       utm_medium: utmMedium || null,
       utm_campaign: utmCampaign || null,
       visitor_id: vid,
-      action_detail: actionDetail,
+      // 分销首触：推广码随 PV 落到 action_detail，官网后台可按渠道看流量
+      action_detail: actionDetail || (getStoredRef()
+        ? { kind: "ref_visit", detail: getStoredRef() } : null),
       device: deviceType(),
       ts: new Date().toISOString(),
     });

@@ -12,6 +12,8 @@ import type { Channel } from "./types";
 
 const UTM_KEY = "qipei_utm";
 const CHANNEL_KEY = "qipei_channel";
+/** 分销首触归因：?ref=CODE 存这个 key，中控台开户弹窗读取后带入 ref_by */
+export const REF_KEY = "jinyou_ref";
 
 export interface UtmData {
   utm_source?: string;
@@ -116,6 +118,37 @@ export function captureUtm(): void {
     if (!existing) localStorage.setItem(CHANNEL_KEY, channel);
     localStorage.setItem(UTM_KEY, JSON.stringify(utm));
   } catch {}
+  captureRef();
+}
+
+/**
+ * 分销推广码首触归因：
+ * - URL 带 ?ref=D001 时写入 localStorage（key 与中控台开户表单共用）
+ * - 只写一次，后续不带 ref 的访问不覆盖（与 UTM 首触口径一致）
+ * - 推广码只保留字母/数字/下划线/连字符并转大写，防止注入与大小写歧义
+ */
+export function captureRef(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const p = new URLSearchParams(window.location.search);
+    const raw = p.get("ref") || "";
+    const code = raw.replace(/[^A-Za-z0-9_-]/g, "").toUpperCase().slice(0, 20);
+    const existing = localStorage.getItem(REF_KEY);
+    if (code && !existing) localStorage.setItem(REF_KEY, code);
+    return existing || code;
+  } catch {
+    return "";
+  }
+}
+
+/** 读取已留存的推广码（中控台开户 / 表单提交时用） */
+export function getStoredRef(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return (localStorage.getItem(REF_KEY) || "").replace(/[^A-Za-z0-9_-]/g, "").toUpperCase().slice(0, 20);
+  } catch {
+    return "";
+  }
 }
 
 export function getStoredUtm(): StoredUtm {

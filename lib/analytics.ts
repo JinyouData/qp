@@ -7,7 +7,7 @@
      供 /admin 看板算转化率（分析平台只给了大盘，这里给的是自己的库）
    ============================================================ */
 
-import { getStoredUtm } from "./utm";
+import { getStoredRef, getStoredUtm } from "./utm";
 import { radarVisitorId } from "./visitor-id";
 
 export type TrackEventName =
@@ -53,8 +53,11 @@ export function trackEvent(name: TrackEventName, props: TrackProps = {}): void {
   // 3) 自己的库（供后台看板）
   try {
     const stored = getStoredUtm();
+    // 分销归因：把首触推广码附到每个事件，官网后台可看哪个渠道在带单。
+    // 真正的订单绑定在中控台开户时完成（官网无支付下单，统一收口企微）。
+    const ref = getStoredRef();
     // 事件也带统一访客 ID：即使 action_detail 列还没迁移，雷达仍能从 events 兜底聚合
-    const unified = { ...payload, visitor_id: radarVisitorId() };
+    const unified = { ...payload, visitor_id: radarVisitorId(), ...(ref ? { ref_code: ref } : {}) };
     const body = JSON.stringify({
       event: name,
       props: unified,
