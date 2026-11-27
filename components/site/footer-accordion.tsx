@@ -12,7 +12,7 @@ import {
 export type MobileFooterGroup = {
   id: string;
   title: string;
-  links: { href: string; label: string }[];
+  links: { href: string; label: string; external?: boolean }[];
 };
 
 /**
@@ -46,12 +46,23 @@ export function FooterAccordion({ groups }: { groups: MobileFooterGroup[] }) {
             <ul className="grid grid-cols-3 gap-x-1.5 gap-y-0">
               {group.links.map((l) => (
                 <li key={l.href + l.label}>
-                  <Link
-                    href={l.href}
-                    className="flex min-h-11 items-center py-1.5 text-[12px] leading-tight transition-colors hover:text-brand-orange-ink"
-                  >
-                    {l.label}
-                  </Link>
+                  {l.external ? (
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-11 items-center py-1.5 text-[12px] leading-tight transition-colors hover:text-brand-orange-ink"
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={l.href}
+                      className="flex min-h-11 items-center py-1.5 text-[12px] leading-tight transition-colors hover:text-brand-orange-ink"
+                    >
+                      {l.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

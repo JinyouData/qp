@@ -12,7 +12,9 @@ import { FooterAccordion, type MobileFooterGroup } from "./footer-accordion";
  * - 「AI 核价助手」已删除（工具库内已有入口）
  * - 「支持与合规」列已彻底删除，隐私政策 / 服务条款下沉到版权行
  */
-const COLS: { title: string; links: { href: string; label: string }[] }[] = [
+type FooterLink = { href: string; label: string; external?: boolean };
+
+const COLS: { title: string; links: FooterLink[] }[] = [
   {
     title: "智库服务",
     links: [
@@ -30,6 +32,7 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
       { href: "/access", label: "查询资料权限" },
+      { href: "https://vip.jinyoudata.com/login", label: "智库登录", external: true },
     ],
   },
 ];
@@ -61,6 +64,7 @@ const MOBILE_GROUPS: MobileFooterGroup[] = [
       { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
       { href: "/access", label: "查询资料权限" },
+      { href: "https://vip.jinyoudata.com/login", label: "智库登录", external: true },
     ],
   },
 ];
@@ -99,9 +103,20 @@ export function Footer() {
               <ul className="space-y-1.5">
                 {col.links.map((l) => (
                   <li key={l.href + l.label}>
-                    <Link href={l.href} className="text-sm transition-colors hover:text-brand-orange-ink">
-                      {l.label}
-                    </Link>
+                    {l.external ? (
+                      <a
+                        href={l.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm transition-colors hover:text-brand-orange-ink"
+                      >
+                        {l.label}
+                      </a>
+                    ) : (
+                      <Link href={l.href} className="text-sm transition-colors hover:text-brand-orange-ink">
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
