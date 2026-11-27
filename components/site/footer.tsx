@@ -7,7 +7,7 @@ import { FooterAccordion, type MobileFooterGroup } from "./footer-accordion";
 /**
  * PC 端三列页脚（国际 SaaS 规范）：
  * - 左侧 Logo 介绍区占 50%（2:1:1），右侧「智库服务」「内容与信任」各占 25%
- * - 「内容与信任」列顺序：智库观察 → 关于我们 → 智库登录 → 查询资料权限
+ * - 「内容与信任」列顺序：关于我们 → 智库观察 → 智库登录 → 查询资料权限
  * - 「SaaS与AI合作」紧跟「定制咨询」，企业级服务排在一起
  * - 「AI 核价助手」已删除（工具库内已有入口）
  * - 「支持与合规」列已彻底删除，隐私政策 / 服务条款下沉到版权行
@@ -29,8 +29,8 @@ const COLS: { title: string; links: FooterLink[] }[] = [
   {
     title: "内容与信任",
     links: [
-      { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
+      { href: "/cases", label: "智库观察" },
       { href: "https://vip.jinyoudata.com/login", label: "智库登录", external: true },
       { href: "/access", label: "查询资料权限" },
     ],
@@ -40,7 +40,7 @@ const COLS: { title: string; links: FooterLink[] }[] = [
 /**
  * 移动端专用导航（<768px）：与 PC 端两组分类口径一致。
  * - 「AI 核价助手」已删除（工具库里已有入口）
- * - 「内容与信任」列顺序：智库观察 → 关于我们 → 智库登录 → 查询资料权限
+ * - 「内容与信任」列顺序：关于我们 → 智库观察 → 智库登录 → 查询资料权限
  * - 「SaaS与AI合作」紧跟「定制咨询」
  * - 隐私政策 / 服务条款统一在底部版权行呈现，不再单独出现在手风琴里
  */
@@ -61,8 +61,8 @@ const MOBILE_GROUPS: MobileFooterGroup[] = [
     id: "content",
     title: "内容与信任",
     links: [
-      { href: "/cases", label: "智库观察" },
       { href: "/about", label: "关于我们" },
+      { href: "/cases", label: "智库观察" },
       { href: "https://vip.jinyoudata.com/login", label: "智库登录", external: true },
       { href: "/access", label: "查询资料权限" },
     ],
